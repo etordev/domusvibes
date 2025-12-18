@@ -1,0 +1,20 @@
+## .NET
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.cache
+*.log
+
+## EF / DB
+db-data/
+*.mdf
+*.ldf
+
+## Docker
+.env
+
+## OS
+.DS_Store
+Thumbs.db
