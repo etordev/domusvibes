@@ -17,7 +17,8 @@ domusvibes/
 │   ├── DomusVibes.Api        # ASP.NET Core Web API
 │   ├── DomusVibes.Application
 │   ├── DomusVibes.Domain
-│   └── DomusVibes.Persistence
+    ├── DomusVibes.Persistence
+│   └── DomusVibes.sln           # Solution file
 │
 ├── assets/
 │   └── logo/                # Branding assets
@@ -26,7 +27,6 @@ domusvibes/
 │   └── business logic/      # Functional & domain documentation
 │
 ├── docker-compose.yml       # PostgreSQL container
-├── DomusVibes.sln           # Solution file
 └── README.md
 
 
