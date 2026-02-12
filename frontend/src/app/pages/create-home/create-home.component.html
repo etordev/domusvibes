@@ -1,0 +1,49 @@
+<header class="navbar">
+  <div class="navbar-content">
+    <div class="brand">
+      <img src="assets/logo_domus_vibes_app.png" alt="DomusVibes logo" />
+      <span>DomusVibes</span>
+    </div>
+    <nav>
+      <a routerLink="/dashboard" class="btn btn-outline">← Back to Dashboard</a>
+    </nav>
+  </div>
+</header>
+
+<div class="page-container">
+  <div class="form-card">
+    <h1>Create New Home</h1>
+    <p>Give your shared living space a name</p>
+
+    <div class="error-message" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </div>
+
+    <div class="success-message" *ngIf="successMessage">
+      {{ successMessage }}
+    </div>
+
+    <form [formGroup]="createHomeForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="name">Home Name</label>
+        <input
+          type="text"
+          id="name"
+          formControlName="name"
+          placeholder="e.g., My Family Home"
+          [class.error]="createHomeForm.get('name')?.invalid && createHomeForm.get('name')?.touched"
+        />
+        <span class="error-text" *ngIf="createHomeForm.get('name')?.invalid && createHomeForm.get('name')?.touched">
+          Home name must be at least 2 characters
+        </span>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="createHomeForm.invalid || isLoading">
+          {{ isLoading ? 'Creating...' : 'Create Home' }}
+        </button>
+        <a routerLink="/dashboard" class="btn btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>

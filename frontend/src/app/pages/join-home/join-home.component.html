@@ -1,0 +1,49 @@
+<header class="navbar">
+  <div class="navbar-content">
+    <div class="brand">
+      <img src="assets/logo_domus_vibes_app.png" alt="DomusVibes logo" />
+      <span>DomusVibes</span>
+    </div>
+    <nav>
+      <a routerLink="/dashboard" class="btn btn-outline">← Back to Dashboard</a>
+    </nav>
+  </div>
+</header>
+
+<div class="page-container">
+  <div class="form-card">
+    <h1>Join a Home</h1>
+    <p>Enter the invite code you received to join a shared living space</p>
+
+    <div class="error-message" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </div>
+
+    <div class="success-message" *ngIf="successMessage">
+      {{ successMessage }}
+    </div>
+
+    <form [formGroup]="joinHomeForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="inviteCode">Invite Code</label>
+        <input
+          type="text"
+          id="inviteCode"
+          formControlName="inviteCode"
+          placeholder="Enter invite code"
+          [class.error]="joinHomeForm.get('inviteCode')?.invalid && joinHomeForm.get('inviteCode')?.touched"
+        />
+        <span class="error-text" *ngIf="joinHomeForm.get('inviteCode')?.invalid && joinHomeForm.get('inviteCode')?.touched">
+          Please enter a valid invite code
+        </span>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="joinHomeForm.invalid || isLoading">
+          {{ isLoading ? 'Joining...' : 'Join Home' }}
+        </button>
+        <a routerLink="/dashboard" class="btn btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>

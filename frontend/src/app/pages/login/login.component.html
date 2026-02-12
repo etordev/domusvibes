@@ -1,0 +1,116 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <img src="assets/logo_domus_vibes_app.png" alt="DomusVibes" class="logo" />
+      <h1>{{ isLoginMode ? 'Welcome Back' : 'Create Account' }}</h1>
+      <p>{{ isLoginMode ? 'Sign in to your account' : 'Join DomusVibes today' }}</p>
+    </div>
+
+    <div class="error-message" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </div>
+
+    <!-- Login Form -->
+    <form [formGroup]="loginForm" (ngSubmit)="onLogin()" *ngIf="isLoginMode">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          formControlName="email"
+          placeholder="your@email.com"
+          [class.error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+        />
+        <span class="error-text" *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
+          Please enter a valid email
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          formControlName="password"
+          placeholder="••••••••"
+          [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+        />
+        <span class="error-text" *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+          Password must be at least 6 characters
+        </span>
+      </div>
+
+      <button type="submit" class="btn btn-primary" [disabled]="loginForm.invalid || isLoading">
+        {{ isLoading ? 'Signing in...' : 'Sign In' }}
+      </button>
+    </form>
+
+    <!-- Register Form -->
+    <form [formGroup]="registerForm" (ngSubmit)="onRegister()" *ngIf="!isLoginMode">
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input
+          type="text"
+          id="name"
+          formControlName="name"
+          placeholder="Your name"
+          [class.error]="registerForm.get('name')?.invalid && registerForm.get('name')?.touched"
+        />
+        <span class="error-text" *ngIf="registerForm.get('name')?.invalid && registerForm.get('name')?.touched">
+          Name must be at least 2 characters
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label for="reg-email">Email</label>
+        <input
+          type="email"
+          id="reg-email"
+          formControlName="email"
+          placeholder="your@email.com"
+          [class.error]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
+        />
+        <span class="error-text" *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
+          Please enter a valid email
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label for="reg-password">Password</label>
+        <input
+          type="password"
+          id="reg-password"
+          formControlName="password"
+          placeholder="••••••••"
+          [class.error]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
+        />
+        <span class="error-text" *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
+          <ng-container *ngIf="registerForm.get('password')?.errors?.['strongPassword']">
+            Use at least 6 characters with one uppercase, one lowercase, one digit and one special character.
+          </ng-container>
+          <ng-container *ngIf="registerForm.get('password')?.errors?.['minlength'] && !registerForm.get('password')?.errors?.['strongPassword']">
+            Password must be at least 6 characters.
+          </ng-container>
+          <ng-container *ngIf="registerForm.get('password')?.errors?.['required']">
+            Password is required.
+          </ng-container>
+        </span>
+      </div>
+
+      <button type="submit" class="btn btn-primary" [disabled]="registerForm.invalid || isLoading">
+        {{ isLoading ? 'Creating account...' : 'Create Account' }}
+      </button>
+    </form>
+
+    <div class="toggle-mode">
+      <p>
+        {{ isLoginMode ? "Don't have an account?" : 'Already have an account?' }}
+        <a (click)="toggleMode()" class="link">{{ isLoginMode ? 'Sign up' : 'Sign in' }}</a>
+      </p>
+    </div>
+
+    <div class="back-link">
+      <a routerLink="/" class="link">← Back to home</a>
+    </div>
+  </div>
+</div>

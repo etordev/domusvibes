@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using DomusVibes.Application.Users.Commands.CreateUser;
+using DomusVibes.Application.Users.Commands.Login;
 
 namespace DVC.Api.Controllers
 {
@@ -23,6 +24,18 @@ namespace DVC.Api.Controllers
         {
             var id = await _mediator.Send(command);
             return Ok(new { Id = id });
+        }
+
+        /// <summary>
+        /// Sign in with email and password. Returns user id and name if valid.
+        /// </summary>
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(LoginCommand command)
+        {
+            var result = await _mediator.Send(command);
+            if (result == null)
+                return Unauthorized(new { error = "Invalid email or password." });
+            return Ok(new { id = result.Id, name = result.Name });
         }
     }
 }

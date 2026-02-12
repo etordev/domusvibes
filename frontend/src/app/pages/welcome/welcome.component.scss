@@ -1,0 +1,162 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:host {
+  font-family: 'Inter', sans-serif;
+  color: #3D4852;
+  display: block;
+}
+
+/* === NAVBAR === */
+.navbar {
+  width: 100%;
+  padding: 1rem 0;
+  background: rgba(255,255,255,0.6);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.navbar-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.brand img {
+  width: 38px;
+  height: 38px;
+}
+
+/* === BUTTONS === */
+.btn {
+  text-decoration: none;
+  border-radius: 8px;
+  padding: 0.7rem 1.6rem;
+  font-weight: 600;
+  transition: 0.25s ease all;
+  display: inline-block;
+}
+
+.btn-outline {
+  border: 2px solid #37CFCB;
+  color: #009A96;
+}
+
+.btn-outline:hover {
+  background: #37CFCB;
+  color: white;
+}
+
+.btn-primary {
+  background: #37CFCB;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #009A96;
+}
+
+.btn-xl {
+  font-size: 1.2rem;
+  padding: 1rem 2rem;
+  margin-top: 1.5rem;
+}
+
+/* === HERO === */
+.hero {
+  min-height: calc(100vh - 80px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.hero-content {
+  z-index: 2;
+  max-width: 760px;
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  animation: fadeIn 0.8s ease-out forwards;
+  opacity: 0;
+}
+
+.hero-logo {
+  width: 150px;
+  margin-bottom: 2.2rem;
+  opacity: 0.95;
+}
+
+.hero-content h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 1.4rem;
+}
+
+.subtitle {
+  color: #4d5965;
+  font-size: 1.25rem;
+  margin-bottom: 2.5rem;
+  line-height: 1.55;
+}
+
+/* === FEATURE LIST === */
+.features {
+  text-align: left;
+  margin: 0 auto 2rem auto;
+  font-size: 1.05rem;
+  color: #495057;
+  max-width: 600px;
+  line-height: 1.65;
+}
+
+.features p {
+  margin: 0.2rem 0;
+}
+
+.features strong {
+  color: #009A96;
+}
+
+/* === BACKGROUND === */
+.hero-background {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 70% 50%, rgba(55,207,203,0.25), transparent 60%),
+              radial-gradient(circle at 30% 60%, rgba(0,154,150,0.18), transparent 70%);
+  animation: slowPulse 9s infinite alternate;
+  z-index: 1;
+}
+
+/* === ANIMATIONS === */
+@keyframes fadeIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slowPulse {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(1.06); opacity: 1; }
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .hero-content h1 {
+    font-size: 2.35rem;
+  }
+  .brand span {
+    display: none; /* se vuoi il nome sparisca su mobile */
+  }
+}

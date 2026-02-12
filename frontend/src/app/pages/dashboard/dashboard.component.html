@@ -1,0 +1,53 @@
+<header class="navbar">
+  <div class="navbar-content">
+    <div class="brand">
+      <img src="assets/logo_domus_vibes_app.png" alt="DomusVibes logo" />
+      <span>DomusVibes</span>
+    </div>
+
+    <nav class="nav-actions">
+      <span class="user-name">Hello, {{ userName }}!</span>
+      <button class="btn btn-outline" (click)="logout()">Logout</button>
+    </nav>
+  </div>
+</header>
+
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <h1>My Homes</h1>
+    <p>Manage your shared living spaces</p>
+  </div>
+
+  <div class="actions-bar">
+    <a routerLink="/homes/create" class="btn btn-primary">+ Create New Home</a>
+    <a routerLink="/homes/join" class="btn btn-outline">Join with Invite Code</a>
+  </div>
+
+  <div class="error-message" *ngIf="errorMessage">
+    {{ errorMessage }}
+  </div>
+
+  <div class="loading" *ngIf="isLoading">
+    <p>Loading your homes...</p>
+  </div>
+
+  <div class="homes-grid" *ngIf="!isLoading && homes.length > 0">
+    <div class="home-card" *ngFor="let home of homes" (click)="viewHomeDetails(home.id)">
+      <div class="home-icon">🏠</div>
+      <h3>{{ home.name }}</h3>
+      <span class="role-badge" [class.owner]="home.role?.toLowerCase() === 'owner'">
+        {{ home.role || 'member' }}
+      </span>
+    </div>
+  </div>
+
+  <div class="empty-state" *ngIf="!isLoading && homes.length === 0">
+    <div class="empty-icon">🏡</div>
+    <h2>No homes yet</h2>
+    <p>Create your first home or join one with an invite code!</p>
+    <div class="empty-actions">
+      <a routerLink="/homes/create" class="btn btn-primary">Create Home</a>
+      <a routerLink="/homes/join" class="btn btn-outline">Join Home</a>
+    </div>
+  </div>
+</div>

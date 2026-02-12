@@ -13,7 +13,11 @@ Console.WriteLine(
     $"EF CONNECTION => {builder.Configuration.GetConnectionString("DefaultConnection")}"
 );
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
 
 // ---------------------------------------------
 // Add services
@@ -21,15 +25,27 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// CORS - Allow frontend to communicate with backend
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:4200")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
 // DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 
-// MediatR – registra tutti gli handler nell'assembly di CreateUserCommand
+// MediatR ? registra tutti gli handler nell'assembly di CreateUserCommand
 builder.Services.AddMediatR(typeof(CreateUserCommand).Assembly);
 
-// FluentValidation – registriamo il validator a mano
+// FluentValidation ? registriamo il validator a mano
 // builder.Services.AddScoped<IValidator<CreateUserCommand>, CreateUserValidator>();
 
 builder.Services.AddValidatorsFromAssemblyContaining<CreateUserValidator>();
@@ -56,6 +72,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors("AllowFrontend");
 app.UseGlobalErrorHandler();
 
 app.MapGet("/", () => "Welcome to DomusVibes API");

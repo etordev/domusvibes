@@ -1,0 +1,70 @@
+<header class="navbar">
+  <div class="navbar-content">
+    <div class="brand">
+      <img src="assets/logo_domus_vibes_app.png" alt="DomusVibes logo" />
+      <span>DomusVibes</span>
+    </div>
+    <nav>
+      <a routerLink="/dashboard" class="btn btn-outline">← Back to Dashboard</a>
+    </nav>
+  </div>
+</header>
+
+<div class="page-container">
+  <div class="error-message" *ngIf="errorMessage">
+    {{ errorMessage }}
+  </div>
+
+  <div class="loading" *ngIf="isLoading">
+    <p>Loading home details...</p>
+  </div>
+
+  <div class="home-details" *ngIf="!isLoading && home">
+    <div class="home-header">
+      <h1>{{ home.name }}</h1>
+      <div class="home-id">ID: {{ home.id }}</div>
+    </div>
+
+    <div class="section">
+      <h2>Members</h2>
+      <div class="members-list" *ngIf="home.members.length > 0">
+        <div class="member-card" *ngFor="let member of home.members">
+          <div class="member-avatar">{{ member.name.charAt(0).toUpperCase() }}</div>
+          <div class="member-info">
+            <div class="member-name">{{ member.name }}</div>
+            <span class="role-badge" [class.owner]="member.role === 'Owner'">
+              {{ member.role }}
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="empty-members" *ngIf="home.members.length === 0">
+        <p>No members yet</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Invite Code</h2>
+      <p class="section-description">Generate an invite code to share with others so they can join this home.</p>
+      
+      <div class="invite-section">
+        <button 
+          class="btn btn-primary" 
+          (click)="generateInviteCode()" 
+          [disabled]="isGeneratingInvite">
+          {{ isGeneratingInvite ? 'Generating...' : 'Generate Invite Code' }}
+        </button>
+
+        <div class="invite-code-display" *ngIf="inviteCode">
+          <div class="code-box">
+            <code>{{ inviteCode }}</code>
+            <button class="btn-copy" (click)="copyInviteCode()" title="Copy to clipboard">
+              📋
+            </button>
+          </div>
+          <p class="code-hint">Share this code with others to invite them to join</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

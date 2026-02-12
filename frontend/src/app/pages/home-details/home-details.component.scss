@@ -1,0 +1,270 @@
+@import '../../styles/variables';
+
+.navbar {
+  width: 100%;
+  padding: 1rem 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.navbar-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #3D4852;
+}
+
+.brand img {
+  width: 38px;
+  height: 38px;
+}
+
+.page-container {
+  max-width: 900px;
+  margin: 3rem auto;
+  padding: 0 2rem;
+}
+
+.error-message {
+  background: #FEE2E2;
+  color: #DC2626;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.loading {
+  text-align: center;
+  padding: 3rem;
+  color: #6B7280;
+}
+
+.home-details {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  padding: 3rem;
+}
+
+.home-header {
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 2px solid #E5E7EB;
+
+  h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #3D4852;
+    margin-bottom: 0.5rem;
+  }
+
+  .home-id {
+    color: #9CA3AF;
+    font-size: 0.9rem;
+    font-family: monospace;
+  }
+}
+
+.section {
+  margin-bottom: 3rem;
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #3D4852;
+    margin-bottom: 1rem;
+  }
+
+  .section-description {
+    color: #6B7280;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.members-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.member-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #F9FAFB;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
+
+  .member-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #37CFCB;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  .member-info {
+    flex: 1;
+
+    .member-name {
+      font-weight: 600;
+      color: #3D4852;
+      margin-bottom: 0.25rem;
+    }
+  }
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: #E5E7EB;
+  color: #6B7280;
+
+  &.owner {
+    background: #D1FAE5;
+    color: #065F46;
+  }
+}
+
+.empty-members {
+  padding: 2rem;
+  text-align: center;
+  color: #9CA3AF;
+  background: #F9FAFB;
+  border-radius: 8px;
+}
+
+.invite-section {
+  .btn {
+    margin-bottom: 1.5rem;
+  }
+}
+
+.invite-code-display {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: #F9FAFB;
+  border-radius: 8px;
+  border: 2px dashed #37CFCB;
+
+  .code-box {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+
+    code {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      background: white;
+      border: 1px solid #E5E7EB;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: #3D4852;
+      font-family: 'Courier New', monospace;
+    }
+
+    .btn-copy {
+      padding: 0.75rem 1rem;
+      background: #37CFCB;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: background 0.2s;
+
+      &:hover {
+        background: #009A96;
+      }
+    }
+  }
+
+  .code-hint {
+    color: #6B7280;
+    font-size: 0.9rem;
+    margin: 0;
+  }
+}
+
+.btn {
+  text-decoration: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  transition: 0.25s ease all;
+  display: inline-block;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+
+  &.btn-primary {
+    background: #37CFCB;
+    color: white;
+
+    &:hover:not(:disabled) {
+      background: #009A96;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  &.btn-outline {
+    border: 2px solid #37CFCB;
+    color: #009A96;
+    background: white;
+
+    &:hover {
+      background: #37CFCB;
+      color: white;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .home-details {
+    padding: 2rem 1.5rem;
+  }
+
+  .home-header h1 {
+    font-size: 2rem;
+  }
+
+  .code-box {
+    flex-direction: column;
+
+    code {
+      text-align: center;
+    }
+  }
+}
