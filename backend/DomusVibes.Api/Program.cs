@@ -42,10 +42,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 
-// MediatR ? registra tutti gli handler nell'assembly di CreateUserCommand
+// MediatR - registers all handlers in the CreateUserCommand assembly
 builder.Services.AddMediatR(typeof(CreateUserCommand).Assembly);
 
-// FluentValidation ? registriamo il validator a mano
+// FluentValidation - we register validators from the assembly
 // builder.Services.AddScoped<IValidator<CreateUserCommand>, CreateUserValidator>();
 
 builder.Services.AddValidatorsFromAssemblyContaining<CreateUserValidator>();

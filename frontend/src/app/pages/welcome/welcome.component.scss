@@ -25,19 +25,42 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
+  position: relative;
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.8rem;
   font-size: 1.6rem;
   font-weight: 700;
+}
+
+.brand-centered {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 15;
+  font-size: 2.5rem;
+}
+
+.navbar nav {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  z-index: 20;
 }
 
 .brand img {
   width: 38px;
   height: 38px;
+}
+
+.brand-centered span {
+  font-size: 2.5rem;
+  font-weight: 700;
 }
 
 /* === BUTTONS === */
@@ -91,12 +114,6 @@
   padding: 2.5rem 1.5rem;
   animation: fadeIn 0.8s ease-out forwards;
   opacity: 0;
-}
-
-.hero-logo {
-  width: 150px;
-  margin-bottom: 2.2rem;
-  opacity: 0.95;
 }
 
 .hero-content h1 {
@@ -155,8 +172,5 @@
 @media (max-width: 768px) {
   .hero-content h1 {
     font-size: 2.35rem;
-  }
-  .brand span {
-    display: none; /* se vuoi il nome sparisca su mobile */
   }
 }

@@ -1,4 +1,4 @@
-﻿namespace DomusVibes.Domain.Entities
+namespace DomusVibes.Domain.Entities
 {
     public class Home
     {
@@ -6,7 +6,7 @@
         public string Name { get; set; } = default!;
         public string? InviteCode { get; set; }
 
-        // Navigation: lista dei membri della casa
+        // Navigation: list of home members
         public List<HomeMember> Members { get; set; } = new List<HomeMember>();
     }
 }

@@ -1,4 +1,4 @@
-﻿using DomusVibes.Domain.Entities;
+using DomusVibes.Domain.Entities;
 using DomusVibes.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -16,19 +16,19 @@ namespace DomusVibes.Application.Homes.Commands.CreateHome
 
         public async Task<Guid> Handle(CreateHomeCommand request, CancellationToken cancellationToken)
         {
-            // Verifica se l'utente esiste
+            // Check if user exists
             var userExists = await _db.Users.AnyAsync(u => u.Id == request.OwnerUserId, cancellationToken);
             if (!userExists)
                 throw new Exception("Owner user not found.");
 
-            // Crea la casa
+            // Create the home
             var home = new Home
             {
                 Id = Guid.NewGuid(),
                 Name = request.Name
             };
 
-            // Crea la relazione HomeMember
+            // Create the HomeMember relationship
             var homeMember = new HomeMember
             {
                 HomeId = home.Id,
