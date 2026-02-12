@@ -3,9 +3,6 @@
 DomusVibes is a modern home-sharing and household management platform.  
 It allows users to create homes, invite members, and manage shared living spaces in a simple and secure way.
 
-This repository currently contains the **backend** of the application.  
-The frontend will be added later.
-
 ---
 
 ## 📦 Project Structure
@@ -17,8 +14,18 @@ domusvibes/
 │   ├── DomusVibes.Api        # ASP.NET Core Web API
 │   ├── DomusVibes.Application
 │   ├── DomusVibes.Domain
-    ├── DomusVibes.Persistence
-│   └── DomusVibes.sln           # Solution file
+│   ├── DomusVibes.Persistence
+│   └── DomusVibes.sln       # Solution file
+│
+├── frontend/                 # Angular frontend
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── pages/       # Page components (welcome, login, dashboard, etc.)
+│   │   │   ├── services/    # API service
+│   │   │   └── styles/      # Global styles
+│   │   └── assets/          # Static assets (logos, i18n)
+│   ├── angular.json
+│   └── package.json
 │
 ├── assets/
 │   └── logo/                # Branding assets
@@ -29,24 +36,38 @@ domusvibes/
 ├── docker-compose.yml       # PostgreSQL container
 └── README.md
 
+---
 
-🚀 Backend Tech Stack
+## 🚀 Tech Stack
 
-.NET 8 / ASP.NET Core
+### Backend
+- **.NET 8** / **ASP.NET Core**
+- **Entity Framework Core**
+- **PostgreSQL**
+- **Docker**
+- **Swagger** / **OpenAPI**
+- **MediatR** (CQRS pattern)
+- **FluentValidation**
+- **BCrypt.Net** (password hashing)
 
-Entity Framework Core
+**Architecture:**
+- Clean Architecture
+- Domain-driven design (Entities, Aggregates, Repositories)
+- CQRS with MediatR
 
-PostgreSQL
+### Frontend
+- **Angular 21**
+- **TypeScript**
+- **RxJS**
+- **Bootstrap 5**
+- **ngx-translate** (i18n)
+- **Angular SSR** (Server-Side Rendering)
+- **SCSS**
 
-Docker
-
-Swagger / OpenAPI
-
-Architecture style:
-
-Clean Architecture
-
-Domain-driven structure (Entities, Aggregates, Repositories)
+**Architecture:**
+- Standalone components
+- Reactive forms
+- Service-based API communication
 
 🧠 Core Concepts
 
@@ -59,32 +80,70 @@ A shared space created by a user.
 Home Members
 Users can join homes via invite codes.
 
-🐳 Running the Project (Backend)
-1️⃣ Start PostgreSQL with Docker
+🐳 Running the Project
+
+### Prerequisites
+- .NET 8 SDK
+- Node.js (v18+ recommended)
+- Docker & Docker Compose
+- PostgreSQL client tools (optional, for database inspection)
+
+### Backend Setup
+
+1️⃣ **Start PostgreSQL with Docker**
+```bash
 docker compose up -d
+```
+PostgreSQL will be available on `localhost:5432`
 
-PostgreSQL will be available on:
-localhost:5432
+2️⃣ **Run database migrations**
+```bash
+cd backend
+dotnet tool restore  # Install EF Core tools if needed
+dotnet ef database update -p DomusVibes.Persistence -s DomusVibes.Api
+```
 
-2️⃣ Run database migrations
-dotnet ef database update \
-  -p backend/DomusVibes.Persistence \
-  -s backend/DomusVibes.Api
-
-3️⃣ Start the API
+3️⃣ **Start the API**
+```bash
 dotnet run --project backend/DomusVibes.Api
+```
+The API will start on: **http://localhost:5200**  
+Swagger UI: **http://localhost:5200/swagger**
 
-The API will start on:
-http://localhost:5200
+### Frontend Setup
 
-Swagger UI:
+1️⃣ **Install dependencies**
+```bash
+cd frontend
+npm install
+```
 
-http://localhost:5200/swagger
+2️⃣ **Start the development server**
+```bash
+npm start
+# or
+ng serve
+```
+The frontend will start on: **http://localhost:4200**
 
-🔌 API Endpoints (examples)
-POST /api/users – create a user
-POST /api/homes – create a home
-POST /api/homes/join – join a home with invite code
+The frontend is configured to communicate with the backend API at `http://localhost:5200/api`.
+
+🔌 API Endpoints
+
+**Users:**
+- `POST /api/users` – create a new user
+- `POST /api/users/login` – authenticate user (email + password)
+
+**Homes:**
+- `POST /api/homes` – create a home
+- `GET /api/homes/user/{userId}` – get all homes for a user
+- `GET /api/homes/{homeId}` – get home details
+- `POST /api/homes/join` – join a home
+- `POST /api/homes/invite/join` – join a home with invite code
+- `POST /api/homes/invite/generate` – generate invite code for a home
+- `PUT /api/homes/update` – update home details
+- `DELETE /api/homes/leave` – leave a home
+- `DELETE /api/homes/remove` – remove a member from a home
 
 🧪 Database
 PostgreSQL
@@ -92,11 +151,11 @@ Managed via Entity Framework Core migrations
 You can inspect the database using tools like DBeaver
 
 🌱 Future Plans
-Frontend (React / Next.js or similar)
-Authentication & authorization (JWT)
-Roles and permissions
-Home features (tasks, expenses, notifications)
-Deployment (Docker + CI/CD)
+- Authentication & authorization (JWT)
+- Roles and permissions
+- Home features (tasks, expenses, notifications)
+- Real-time updates
+- Deployment (Docker + CI/CD)
 
 📄 License
 Private project – all rights reserved.
