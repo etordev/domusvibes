@@ -3,8 +3,6 @@
 DomusVibes is a modern home-sharing and household management platform.  
 It allows users to create homes, invite members, and manage shared living spaces in a simple and secure way.
 
-### Screenshots
-
 ![Home](./docs/screenshots/home.png)
 
 ---
