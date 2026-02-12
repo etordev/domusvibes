@@ -20,12 +20,36 @@ domusvibes/
 ├── frontend/                 # Angular frontend
 │   ├── src/
 │   │   ├── app/
-│   │   │   ├── pages/       # Page components (welcome, login, dashboard, etc.)
+│   │   │   ├── pages/       # Page components
+│   │   │   │   ├── welcome/     # Welcome/landing page
+│   │   │   │   ├── login/      # Login/register page
+│   │   │   │   ├── dashboard/  # User dashboard
+│   │   │   │   ├── create-home/ # Create home page
+│   │   │   │   ├── join-home/  # Join home page
+│   │   │   │   └── home-details/ # Home details page
 │   │   │   ├── services/    # API service
-│   │   │   └── styles/      # Global styles
-│   │   └── assets/          # Static assets (logos, i18n)
-│   ├── angular.json
-│   └── package.json
+│   │   │   ├── styles/      # Global styles (SCSS variables, mixins)
+│   │   │   ├── app.component.*
+│   │   │   ├── app.config.ts
+│   │   │   └── app.routes.ts
+│   │   ├── assets/
+│   │   │   ├── i18n/        # Translation files (en, de, es, fr, it)
+│   │   │   └── logo_domus_vibes_app.png
+│   │   ├── environments/    # Environment configs (dev/prod)
+│   │   ├── index.html
+│   │   ├── main.ts
+│   │   ├── main.server.ts   # SSR entry point
+│   │   ├── server.ts        # Express server for SSR
+│   │   └── styles.scss      # Global styles entry
+│   ├── public/
+│   │   └── favicon.ico
+│   ├── .vscode/             # VS Code settings
+│   ├── angular.json         # Angular CLI config
+│   ├── tsconfig.json        # TypeScript config
+│   ├── tsconfig.app.json
+│   ├── tsconfig.spec.json
+│   ├── package.json
+│   └── README.md
 │
 ├── assets/
 │   └── logo/                # Branding assets
