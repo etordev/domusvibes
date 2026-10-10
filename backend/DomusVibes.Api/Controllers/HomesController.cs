@@ -52,9 +52,9 @@ namespace DomusVibes.Api.Controllers
         }
 
         [HttpGet("{homeId}/dashboard")]
-        public async Task<IActionResult> GetDashboard(Guid homeId, [FromQuery] Guid userId)
+        public async Task<IActionResult> GetDashboard(Guid homeId, [FromQuery] Guid userId, [FromQuery] DateOnly? month)
         {
-            var result = await _mediator.Send(new GetHomeDashboardQuery(homeId, userId));
+            var result = await _mediator.Send(new GetHomeDashboardQuery(homeId, userId, month));
             return Ok(result);
         }
 

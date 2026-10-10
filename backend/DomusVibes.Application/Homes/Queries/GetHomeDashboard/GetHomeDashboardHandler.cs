@@ -48,9 +48,19 @@ namespace DomusVibes.Application.Homes.Queries.GetHomeDashboard
                 .Include(m => m.User)
                 .ToListAsync(cancellationToken);
 
-            var from = today.AddDays(-6);
+            var monthStart = new DateOnly(today.Year, today.Month, 1);
+            if (request.Month is { } chosen)
+            {
+                var chosenStart = new DateOnly(chosen.Year, chosen.Month, 1);
+                if (chosenStart <= monthStart)
+                    monthStart = chosenStart;
+            }
+
+            var monthEnd = monthStart.AddMonths(1).AddDays(-1);
+            var rangeStart = StartOfWeek(monthStart);
+            var rangeEnd = StartOfWeek(monthEnd).AddDays(6);
             var history = await _db.HomePulses
-                .Where(p => p.HomeId == request.HomeId && p.Day >= from && p.Day <= today)
+                .Where(p => p.HomeId == request.HomeId && p.Day >= rangeStart && p.Day <= rangeEnd)
                 .ToListAsync(cancellationToken);
 
             var mine = statuses.FirstOrDefault(s => s.UserId == request.UserId);
@@ -105,12 +115,7 @@ namespace DomusVibes.Application.Homes.Queries.GetHomeDashboard
                         CreatedAt = a.CreatedAt
                     })
                     .ToListAsync(cancellationToken),
-                Week = Enumerable.Range(0, 7).Select(offset =>
-                {
-                    var day = from.AddDays(offset);
-                    var point = history.FirstOrDefault(p => p.Day == day);
-                    return new PulsePointDto { Day = day, Score = point?.Score };
-                }).ToList()
+                History = Points(history, rangeStart, rangeEnd.DayNumber - rangeStart.DayNumber + 1)
             };
         }
 
@@ -123,6 +128,25 @@ namespace DomusVibes.Application.Homes.Queries.GetHomeDashboard
             if (score <= 40)
                 return low;
             return mid;
+        }
+
+        private static DateOnly StartOfWeek(DateOnly day)
+        {
+            var diff = ((int)day.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7;
+            return day.AddDays(-diff);
+        }
+
+        private static List<PulsePointDto> Points(
+            List<DomusVibes.Domain.Entities.HomePulse> history,
+            DateOnly start,
+            int days)
+        {
+            return Enumerable.Range(0, days).Select(offset =>
+            {
+                var day = start.AddDays(offset);
+                var point = history.FirstOrDefault(p => p.Day == day);
+                return new PulsePointDto { Day = day, Score = point?.Score };
+            }).ToList();
         }
     }
 }

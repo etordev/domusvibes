@@ -2,6 +2,7 @@ import { afterNextRender, Component, computed, inject, signal } from '@angular/c
 import { httpResource } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
 import { LogoutPrompt } from '../../components/logout-dialog/logout-prompt';
+import { ProfileNameComponent } from '../../components/profile-name/profile-name.component';
 import { HomeListItem } from '../../services/api.service';
 import { environment } from '../../../environments/environment';
 
@@ -27,15 +28,13 @@ function resourceErrorMessage(error: unknown, fallback: string): string {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [RouterModule],
+  imports: [RouterModule, ProfileNameComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
 export class DashboardComponent {
   private readonly router = inject(Router);
   private readonly userId = signal<string | null>(null);
-
-  readonly userName = signal('User');
   readonly waitingForSession = computed(() => this.userId() === null);
   readonly homes = httpResource<HomeListItem[]>(() => {
     const id = this.userId();
@@ -57,7 +56,6 @@ export class DashboardComponent {
       }
 
       this.userId.set(storedUserId);
-      this.userName.set(localStorage.getItem('userName') || 'User');
     });
   }
 

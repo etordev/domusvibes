@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using DomusVibes.Application.Users.Commands.CreateUser;
 using DomusVibes.Application.Users.Commands.Login;
+using DomusVibes.Application.Users.Commands.UpdateUserName;
 
 namespace DVC.Api.Controllers
 {
@@ -36,6 +37,13 @@ namespace DVC.Api.Controllers
             if (result == null)
                 return Unauthorized(new { error = "Invalid email or password." });
             return Ok(new { id = result.Id, name = result.Name });
+        }
+
+        [HttpPut("name")]
+        public async Task<IActionResult> UpdateName(UpdateUserNameCommand command)
+        {
+            var name = await _mediator.Send(command);
+            return Ok(new { name });
         }
     }
 }

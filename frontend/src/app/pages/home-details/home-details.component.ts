@@ -4,6 +4,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { map } from 'rxjs';
 import { LogoutPrompt } from '../../components/logout-dialog/logout-prompt';
+import { ProfileNameComponent } from '../../components/profile-name/profile-name.component';
 import { ApiService, HomeChanged, HomeDashboard, PulsePoint } from '../../services/api.service';
 import { environment } from '../../../environments/environment';
 
@@ -12,6 +13,76 @@ function resourceErrorMessage(error: unknown, fallback: string): string {
   if (typeof error !== 'object') return fallback;
   const httpError = error as { error?: { error?: string; message?: string }; message?: string };
   return httpError.error?.error || httpError.error?.message || httpError.message || fallback;
+}
+
+function currentMonthValue(date = new Date()): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function utcDate(value: string): Date {
+  return new Date(`${value}T00:00:00Z`);
+}
+
+function isoDate(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
+function addUtcDays(value: string, days: number): string {
+  const date = utcDate(value);
+  date.setUTCDate(date.getUTCDate() + days);
+  return isoDate(date);
+}
+
+function startOfWeek(value: string): string {
+  const date = utcDate(value);
+  date.setUTCDate(date.getUTCDate() - ((date.getUTCDay() + 6) % 7));
+  return isoDate(date);
+}
+
+function monthBounds(monthValue: string): { start: string; end: string } {
+  const [year, month] = monthValue.split('-').map(Number);
+  const start = `${year}-${String(month).padStart(2, '0')}-01`;
+  return { start, end: isoDate(new Date(Date.UTC(year, month, 0))) };
+}
+
+function weekLabel(start: string, end: string): string {
+  const left = utcDate(start);
+  const right = utcDate(end);
+  const sameMonth = left.getUTCMonth() === right.getUTCMonth();
+  const startText = left.toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: sameMonth ? undefined : 'short',
+    timeZone: 'UTC'
+  });
+  const endText = right.toLocaleDateString(undefined, { day: 'numeric', month: 'short', timeZone: 'UTC' });
+  return `${startText} – ${endText}`;
+}
+
+function weeksInMonth(monthValue: string): { start: string; label: string }[] {
+  const { start, end } = monthBounds(monthValue);
+  let cursor = startOfWeek(start);
+  const last = startOfWeek(end);
+  const weeks: { start: string; label: string }[] = [];
+  while (cursor <= last) {
+    const finish = addUtcDays(cursor, 6);
+    weeks.push({ start: cursor, label: weekLabel(cursor, finish) });
+    cursor = addUtcDays(cursor, 7);
+  }
+  return weeks;
+}
+
+function defaultWeek(monthValue: string, today = localDateInput()): string {
+  const weeks = weeksInMonth(monthValue);
+  return weeks.find(week => today >= week.start && today <= addUtcDays(week.start, 6))?.start ?? weeks[0].start;
+}
+
+function monthTitle(monthValue: string): string {
+  const [year, month] = monthValue.split('-').map(Number);
+  return utcDate(`${year}-${String(month).padStart(2, '0')}-01`).toLocaleDateString(undefined, {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC'
+  });
 }
 
 function localDateInput(date = new Date()): string {
@@ -28,7 +99,7 @@ function readDashboard(raw: unknown): HomeDashboard {
   const my = item['myStatus'] as Record<string, unknown> | null;
   const members = Array.isArray(item['members']) ? item['members'] as Record<string, unknown>[] : [];
   const activities = Array.isArray(item['recentActivities']) ? item['recentActivities'] as Record<string, unknown>[] : [];
-  const week = Array.isArray(item['week']) ? item['week'] as Record<string, unknown>[] : [];
+  const history = Array.isArray(item['history']) ? item['history'] as Record<string, unknown>[] : [];
 
   return {
     homeId: text(item['homeId']),
@@ -65,7 +136,7 @@ function readDashboard(raw: unknown): HomeDashboard {
       occurredOn: text(activity['occurredOn']),
       createdAt: text(activity['createdAt'])
     })),
-    week: week.map(point => ({
+    history: history.map(point => ({
       day: text(point['day']),
       score: point['score'] == null ? null : Number(point['score'])
     }))
@@ -75,7 +146,7 @@ function readDashboard(raw: unknown): HomeDashboard {
 @Component({
   selector: 'app-home-details',
   standalone: true,
-  imports: [RouterModule],
+  imports: [RouterModule, ProfileNameComponent],
   templateUrl: './home-details.component.html',
   styleUrls: ['./home-details.component.scss']
 })
@@ -92,7 +163,6 @@ export class HomeDetailsComponent implements OnDestroy {
   private chartReady: Promise<typeof import('chart.js')> | null = null;
   private readonly chartCanvas = viewChild<ElementRef<HTMLCanvasElement>>('pulseChart');
 
-  readonly userName = signal('');
   readonly homeId = toSignal(
     this.route.paramMap.pipe(map(params => params.get('id') ?? '')),
     { initialValue: this.route.snapshot.paramMap.get('id') ?? '' }
@@ -101,7 +171,7 @@ export class HomeDetailsComponent implements OnDestroy {
     const id = this.homeId();
     const userId = this.userId();
     if (!id || !userId) return undefined;
-    return `${environment.apiUrl}/homes/${id}/dashboard?userId=${userId}`;
+    return `${environment.apiUrl}/homes/${id}/dashboard?userId=${userId}&month=${this.selectedMonth()}-01`;
   }, { parse: readDashboard });
   readonly actionError = signal('');
   readonly detailsError = computed(() =>
@@ -121,6 +191,25 @@ export class HomeDetailsComponent implements OnDestroy {
   readonly activityDate = signal(localDateInput());
   readonly homeName = signal('');
   readonly isSavingHome = signal(false);
+  readonly selectedMonth = signal(currentMonthValue());
+  readonly latestMonth = currentMonthValue();
+  readonly pulseRange = signal<'month' | 'week'>('month');
+  readonly selectedWeek = signal(defaultWeek(currentMonthValue()));
+  readonly weeks = computed(() => weeksInMonth(this.selectedMonth()));
+  readonly chartTitle = computed(() => {
+    if (this.pulseRange() === 'month') return monthTitle(this.selectedMonth());
+    return this.weeks().find(week => week.start === this.selectedWeek())?.label ?? 'Week';
+  });
+  readonly chartPoints = computed(() => {
+    const history = this.dashboard.value()?.history ?? [];
+    if (this.pulseRange() === 'month') {
+      const { start, end } = monthBounds(this.selectedMonth());
+      return history.filter(point => point.day >= start && point.day <= end);
+    }
+    const start = this.selectedWeek();
+    const end = addUtcDays(start, 6);
+    return history.filter(point => point.day >= start && point.day <= end);
+  });
   readonly isOwner = computed(() => {
     const id = this.userId();
     return (this.dashboard.value()?.members ?? []).some(member => member.userId === id && member.role === 'owner');
@@ -134,7 +223,6 @@ export class HomeDetailsComponent implements OnDestroy {
         return;
       }
       this.userId.set(storedUserId);
-      this.userName.set(localStorage.getItem('userName') || 'User');
     });
 
     effect(() => {
@@ -164,9 +252,10 @@ export class HomeDetailsComponent implements OnDestroy {
 
     effect(() => {
       const canvas = this.chartCanvas()?.nativeElement;
-      const week = this.dashboard.value()?.week;
-      if (!canvas || !week?.length) return;
-      void this.drawChart(canvas, week);
+      const points = this.chartPoints();
+      const range = this.pulseRange();
+      if (!canvas || !points.length) return;
+      void this.drawChart(canvas, points, range);
     });
   }
 
@@ -216,6 +305,20 @@ export class HomeDetailsComponent implements OnDestroy {
   setActivityDone(event: Event) { this.activityDone.set((event.target as HTMLSelectElement).value === 'done'); }
   setComment(event: Event) { this.activityComment.set((event.target as HTMLInputElement).value); }
   setActivityDate(event: Event) { this.activityDate.set((event.target as HTMLInputElement).value); }
+  setMonth(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+    if (!/^\d{4}-\d{2}$/.test(value) || value > this.latestMonth) return;
+    this.selectedMonth.set(value);
+    const weeks = weeksInMonth(value);
+    if (!weeks.some(week => week.start === this.selectedWeek())) {
+      this.selectedWeek.set(defaultWeek(value));
+    }
+  }
+
+  setWeek(event: Event) {
+    this.selectedWeek.set((event.target as HTMLSelectElement).value);
+  }
+
   setHomeName(event: Event) { this.homeName.set((event.target as HTMLInputElement).value); }
   todayDate(): string { return localDateInput(); }
 
@@ -405,8 +508,8 @@ export class HomeDetailsComponent implements OnDestroy {
     this.notices.set([{ id: crypto.randomUUID(), message, alert }, ...current].slice(0, 5));
   }
 
-  private async drawChart(canvas: HTMLCanvasElement, week: PulsePoint[]) {
-    const key = week.map(point => `${point.day}:${point.score ?? ''}`).join('|');
+  private async drawChart(canvas: HTMLCanvasElement, points: PulsePoint[], range: 'week' | 'month') {
+    const key = `${range}|` + points.map(point => `${point.day}:${point.score ?? ''}`).join('|');
     if (canvas.dataset['weekKey'] === key) return;
     canvas.dataset['weekKey'] = key;
 
@@ -419,17 +522,17 @@ export class HomeDetailsComponent implements OnDestroy {
     new Chart(canvas, {
       type: 'line',
       data: {
-        labels: week.map(point => this.dayLabel(point.day)),
+        labels: points.map(point => this.dayLabel(point.day, range)),
         datasets: [{
           label: 'HomePulse',
-          data: week.map(point => point.score),
+          data: points.map(point => point.score),
           borderColor: '#009A96',
           backgroundColor: 'rgba(55, 207, 203, 0.18)',
           borderWidth: 3,
           tension: 0.35,
           fill: true,
           spanGaps: false,
-          pointRadius: 4,
+          pointRadius: range === 'month' ? 3 : 4,
           pointBackgroundColor: '#009A96'
         }]
       },
@@ -440,14 +543,20 @@ export class HomeDetailsComponent implements OnDestroy {
         plugins: { legend: { display: false } },
         scales: {
           y: { min: 0, max: 100, ticks: { stepSize: 20 } },
-          x: { grid: { display: false } }
+          x: {
+            grid: { display: false },
+            ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: range === 'month' ? 8 : 7 }
+          }
         }
       }
     });
   }
 
-  private dayLabel(day: string): string {
+  private dayLabel(day: string, range: 'week' | 'month'): string {
     const date = new Date(`${day}T00:00:00Z`);
-    return date.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', timeZone: 'UTC' });
+    const options: Intl.DateTimeFormatOptions = range === 'month'
+      ? { day: 'numeric', month: 'short', timeZone: 'UTC' }
+      : { weekday: 'short', day: 'numeric', timeZone: 'UTC' };
+    return date.toLocaleDateString(undefined, options);
   }
 }

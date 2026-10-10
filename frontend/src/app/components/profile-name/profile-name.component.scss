@@ -1,0 +1,20 @@
+:host {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.user-name {
+  color: #6B7280;
+  font-weight: 500;
+}
+
+.edit-name {
+  border: 0;
+  background: transparent;
+  color: #009A96;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}

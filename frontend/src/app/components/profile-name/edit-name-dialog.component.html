@@ -1,0 +1,15 @@
+<h2>Your name</h2>
+<p>This is the name other people in your homes see.</p>
+<label>
+  Name
+  <input [value]="name()" (input)="setName($event)" maxlength="80" />
+</label>
+@if (error()) {
+  <p class="error">{{ error() }}</p>
+}
+<div class="actions">
+  <button type="button" class="cancel" (click)="cancel()">Cancel</button>
+  <button type="button" class="confirm" (click)="save()" [disabled]="saving() || name().trim().length < 2">
+    {{ saving() ? 'Saving...' : 'Save' }}
+  </button>
+</div>

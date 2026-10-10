@@ -17,7 +17,7 @@ namespace DomusVibes.Application.Homes.Queries.GetHomeDashboard
         public MyStatusDto? MyStatus { get; set; }
         public List<MemberStatusDto> Members { get; set; } = new();
         public List<ActivityItemDto> RecentActivities { get; set; } = new();
-        public List<PulsePointDto> Week { get; set; } = new();
+        public List<PulsePointDto> History { get; set; } = new();
     }
 
     public class MyStatusDto

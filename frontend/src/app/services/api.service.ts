@@ -135,7 +135,7 @@ export interface HomeDashboard {
   myStatus: MyStatus | null;
   members: MemberStatus[];
   recentActivities: ActivityItem[];
-  week: PulsePoint[];
+  history: PulsePoint[];
 }
 
 @Injectable({
@@ -198,6 +198,10 @@ export class ApiService {
     occurredOn: string;
   }): Observable<HomeChanged> {
     return this.http.post<HomeChanged>(`${this.apiUrl}/activities`, request);
+  }
+
+  updateUserName(request: { userId: string; name: string }): Observable<{ name: string }> {
+    return this.http.put<{ name: string }>(`${this.apiUrl}/users/name`, request);
   }
 
   updateHome(request: { homeId: string; executorUserId: string; newName: string }): Observable<{ updated: boolean }> {
