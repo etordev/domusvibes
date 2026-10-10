@@ -41,6 +41,9 @@
         <div class="home-card" (click)="viewHomeDetails(home.id)">
           <div class="home-icon">🏠</div>
           <h3>{{ home.name }}</h3>
+          @if (home.score !== null) {
+            <div class="pulse-score">HomePulse {{ home.score }}</div>
+          }
           <span class="role-badge" [class.owner]="home.role?.toLowerCase() === 'owner'">
             {{ home.role || 'member' }}
           </span>

@@ -1,4 +1,5 @@
 using DVC.Api.Middleware;
+using DomusVibes.Api.Hubs;
 using DomusVibes.Application.Users.Commands.CreateUser;
 using DomusVibes.Persistence;
 using FluentValidation;
@@ -24,6 +25,7 @@ builder.Services.AddControllers()
 // ---------------------------------------------
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSignalR();
 
 // CORS - Allow frontend to communicate with backend
 builder.Services.AddCors(options =>
@@ -93,6 +95,7 @@ app.MapGet("/weatherforecast", () =>
 
 
 app.MapControllers();
+app.MapHub<HomeHub>("/hubs/home");
 
 app.Run();
 

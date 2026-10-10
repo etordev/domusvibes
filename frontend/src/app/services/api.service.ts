@@ -37,6 +37,7 @@ export interface HomeListItem {
   id: string;
   name: string;
   role: string;
+  score: number | null;
 }
 
 export interface HomeMember {
@@ -78,6 +79,64 @@ export interface GenerateInviteCodeResponse {
   inviteCode: string;
 }
 
+export interface HomeChanged {
+  homeId: string;
+  actorUserId: string;
+  actorName: string;
+  kind: string;
+  message: string;
+  alert: string | null;
+  score: number;
+}
+
+export interface MyStatus {
+  mood: string;
+  energy: string;
+  availability: string;
+}
+
+export interface MemberStatus {
+  userId: string;
+  name: string;
+  role: string;
+  mood: string | null;
+  energy: string | null;
+  availability: string | null;
+}
+
+export interface ActivityItem {
+  id: string;
+  userName: string;
+  type: string;
+  completed: boolean;
+  comment: string | null;
+  createdAt: string;
+}
+
+export interface PulsePoint {
+  day: string;
+  score: number | null;
+}
+
+export interface HomeDashboard {
+  homeId: string;
+  homeName: string;
+  score: number;
+  lowMood: boolean;
+  alert: string | null;
+  moodScore: number;
+  energyScore: number;
+  completedCount: number;
+  missedCount: number;
+  positiveNotes: number;
+  averageMood: string;
+  averageEnergy: string;
+  myStatus: MyStatus | null;
+  members: MemberStatus[];
+  recentActivities: ActivityItem[];
+  week: PulsePoint[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -117,5 +176,25 @@ export class ApiService {
 
   generateInviteCode(request: GenerateInviteCodeRequest): Observable<GenerateInviteCodeResponse> {
     return this.http.post<GenerateInviteCodeResponse>(`${this.apiUrl}/homes/invite/generate`, request);
+  }
+
+  updateDailyStatus(request: {
+    homeId: string;
+    userId: string;
+    mood: string;
+    energy: string;
+    availability: string;
+  }): Observable<HomeChanged> {
+    return this.http.put<HomeChanged>(`${this.apiUrl}/status/daily`, request);
+  }
+
+  logActivity(request: {
+    homeId: string;
+    userId: string;
+    type: string;
+    completed: boolean;
+    comment: string | null;
+  }): Observable<HomeChanged> {
+    return this.http.post<HomeChanged>(`${this.apiUrl}/activities`, request);
   }
 }

@@ -1,9 +1,9 @@
-import { afterNextRender, Component, computed, inject, signal } from '@angular/core';
+import { afterNextRender, Component, computed, effect, ElementRef, inject, OnDestroy, signal, viewChild } from '@angular/core';
 import { httpResource } from '@angular/common/http';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { map } from 'rxjs';
-import { ApiService, HomeDetails } from '../../services/api.service';
+import { ApiService, HomeChanged, HomeDashboard, PulsePoint } from '../../services/api.service';
 import { environment } from '../../../environments/environment';
 
 function resourceErrorMessage(error: unknown, fallback: string): string {
@@ -13,6 +13,58 @@ function resourceErrorMessage(error: unknown, fallback: string): string {
   return httpError.error?.error || httpError.error?.message || httpError.message || fallback;
 }
 
+function text(value: unknown, fallback = ''): string {
+  return value == null ? fallback : String(value);
+}
+
+function readDashboard(raw: unknown): HomeDashboard {
+  const item = (raw ?? {}) as Record<string, unknown>;
+  const my = item['myStatus'] as Record<string, unknown> | null;
+  const members = Array.isArray(item['members']) ? item['members'] as Record<string, unknown>[] : [];
+  const activities = Array.isArray(item['recentActivities']) ? item['recentActivities'] as Record<string, unknown>[] : [];
+  const week = Array.isArray(item['week']) ? item['week'] as Record<string, unknown>[] : [];
+
+  return {
+    homeId: text(item['homeId']),
+    homeName: text(item['homeName']),
+    score: Number(item['score'] ?? 0),
+    lowMood: Boolean(item['lowMood']),
+    alert: item['alert'] == null ? null : text(item['alert']),
+    moodScore: Number(item['moodScore'] ?? 0),
+    energyScore: Number(item['energyScore'] ?? 0),
+    completedCount: Number(item['completedCount'] ?? 0),
+    missedCount: Number(item['missedCount'] ?? 0),
+    positiveNotes: Number(item['positiveNotes'] ?? 0),
+    averageMood: text(item['averageMood'], 'none'),
+    averageEnergy: text(item['averageEnergy'], 'none'),
+    myStatus: my ? {
+      mood: text(my['mood'], 'normal'),
+      energy: text(my['energy'], 'medium'),
+      availability: text(my['availability'], 'available')
+    } : null,
+    members: members.map(member => ({
+      userId: text(member['userId']),
+      name: text(member['name']),
+      role: text(member['role']),
+      mood: member['mood'] == null ? null : text(member['mood']),
+      energy: member['energy'] == null ? null : text(member['energy']),
+      availability: member['availability'] == null ? null : text(member['availability'])
+    })),
+    recentActivities: activities.map(activity => ({
+      id: text(activity['id']),
+      userName: text(activity['userName']),
+      type: text(activity['type']),
+      completed: Boolean(activity['completed']),
+      comment: activity['comment'] == null ? null : text(activity['comment']),
+      createdAt: text(activity['createdAt'])
+    })),
+    week: week.map(point => ({
+      day: text(point['day']),
+      score: point['score'] == null ? null : Number(point['score'])
+    }))
+  };
+}
+
 @Component({
   selector: 'app-home-details',
   standalone: true,
@@ -20,26 +72,43 @@ function resourceErrorMessage(error: unknown, fallback: string): string {
   templateUrl: './home-details.component.html',
   styleUrls: ['./home-details.component.scss']
 })
-export class HomeDetailsComponent {
+export class HomeDetailsComponent implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly apiService = inject(ApiService);
-  private readonly userId = signal('');
+  private readonly userId = signal<string | null>(null);
+  private connection: { stop: () => Promise<void> } | null = null;
+  private joinedHomeId = '';
+  private listenGeneration = 0;
+  private statusReady = false;
+  private chartReady: Promise<typeof import('chart.js')> | null = null;
+  private readonly chartCanvas = viewChild<ElementRef<HTMLCanvasElement>>('pulseChart');
 
   readonly homeId = toSignal(
     this.route.paramMap.pipe(map(params => params.get('id') ?? '')),
     { initialValue: this.route.snapshot.paramMap.get('id') ?? '' }
   );
-  readonly home = httpResource<HomeDetails>(() => {
+  readonly dashboard = httpResource<HomeDashboard>(() => {
     const id = this.homeId();
-    return id ? `${environment.apiUrl}/homes/${id}` : undefined;
-  });
+    const userId = this.userId();
+    if (!id || !userId) return undefined;
+    return `${environment.apiUrl}/homes/${id}/dashboard?userId=${userId}`;
+  }, { parse: readDashboard });
   readonly actionError = signal('');
   readonly detailsError = computed(() =>
-    this.actionError() || resourceErrorMessage(this.home.error(), 'Failed to load home details.')
+    this.actionError() || resourceErrorMessage(this.dashboard.error(), 'Failed to load this home.')
   );
   readonly inviteCode = signal('');
   readonly isGeneratingInvite = signal(false);
+  readonly isSavingStatus = signal(false);
+  readonly isLoggingActivity = signal(false);
+  readonly notices = signal<Array<{ id: string; message: string; alert: boolean }>>([]);
+  readonly mood = signal('normal');
+  readonly energy = signal('medium');
+  readonly availability = signal('available');
+  readonly activityType = signal('cleaning');
+  readonly activityDone = signal(true);
+  readonly activityComment = signal('');
 
   constructor() {
     afterNextRender(() => {
@@ -50,17 +119,127 @@ export class HomeDetailsComponent {
       }
       this.userId.set(storedUserId);
     });
+
+    effect(() => {
+      const id = this.homeId();
+      const user = this.userId();
+      if (!id || !user) return;
+      void this.listen(id);
+    });
+
+    effect(() => {
+      const mine = this.dashboard.value()?.myStatus;
+      if (!mine || this.statusReady) return;
+      this.mood.set(mine.mood);
+      this.energy.set(mine.energy);
+      this.availability.set(mine.availability);
+      this.statusReady = true;
+    });
+
+    effect(() => {
+      const canvas = this.chartCanvas()?.nativeElement;
+      const week = this.dashboard.value()?.week;
+      if (!canvas || !week?.length) return;
+      void this.drawChart(canvas, week);
+    });
+  }
+
+  ngOnDestroy() {
+    this.listenGeneration += 1;
+    void this.connection?.stop();
+  }
+
+  scoreTone(score: number): string {
+    if (score >= 70) return 'good';
+    if (score >= 40) return 'ok';
+    return 'low';
+  }
+
+  activityLabel(type: string): string {
+    const labels: Record<string, string> = {
+      cleaning: 'Cleaning',
+      shopping: 'Shopping',
+      kitchen: 'Kitchen',
+      trash: 'Trash',
+      tidying: 'Tidying'
+    };
+    return labels[type] ?? type;
+  }
+
+  activityWhen(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+
+  setMood(event: Event) { this.mood.set((event.target as HTMLSelectElement).value); }
+  setEnergy(event: Event) { this.energy.set((event.target as HTMLSelectElement).value); }
+  setAvailability(event: Event) { this.availability.set((event.target as HTMLSelectElement).value); }
+  setActivityType(event: Event) { this.activityType.set((event.target as HTMLSelectElement).value); }
+  setActivityDone(event: Event) { this.activityDone.set((event.target as HTMLSelectElement).value === 'done'); }
+  setComment(event: Event) { this.activityComment.set((event.target as HTMLInputElement).value); }
+
+  saveStatus() {
+    const homeId = this.homeId();
+    const userId = this.userId();
+    if (!homeId || !userId) return;
+
+    this.isSavingStatus.set(true);
+    this.actionError.set('');
+    this.apiService.updateDailyStatus({
+      homeId,
+      userId,
+      mood: this.mood(),
+      energy: this.energy(),
+      availability: this.availability()
+    }).subscribe({
+      next: () => {
+        this.isSavingStatus.set(false);
+        this.dashboard.reload();
+      },
+      error: (error) => {
+        this.actionError.set(error.error?.error || error.error?.message || 'Failed to save today\'s check-in.');
+        this.isSavingStatus.set(false);
+      }
+    });
+  }
+
+  logActivity() {
+    const homeId = this.homeId();
+    const userId = this.userId();
+    if (!homeId || !userId) return;
+
+    this.isLoggingActivity.set(true);
+    this.actionError.set('');
+    this.apiService.logActivity({
+      homeId,
+      userId,
+      type: this.activityType(),
+      completed: this.activityDone(),
+      comment: this.activityComment().trim() || null
+    }).subscribe({
+      next: () => {
+        this.activityComment.set('');
+        this.isLoggingActivity.set(false);
+        this.dashboard.reload();
+      },
+      error: (error) => {
+        this.actionError.set(error.error?.error || error.error?.message || 'Failed to log that activity.');
+        this.isLoggingActivity.set(false);
+      }
+    });
   }
 
   generateInviteCode() {
     const homeId = this.homeId();
-    if (!homeId) return;
+    const userId = this.userId();
+    if (!homeId || !userId) return;
 
     this.isGeneratingInvite.set(true);
     this.actionError.set('');
     this.apiService.generateInviteCode({
       homeId,
-      executorUserId: this.userId()
+      executorUserId: userId
     }).subscribe({
       next: (response) => {
         this.inviteCode.set(response.inviteCode);
@@ -80,5 +259,95 @@ export class HomeDetailsComponent {
         alert('Invite code copied to clipboard!');
       });
     }
+  }
+
+  private async listen(homeId: string) {
+    if (this.joinedHomeId === homeId && this.connection) return;
+
+    const generation = ++this.listenGeneration;
+    await this.connection?.stop().catch(() => undefined);
+    this.connection = null;
+    this.joinedHomeId = '';
+
+    const { HubConnectionBuilder } = await import('@microsoft/signalr');
+    if (generation !== this.listenGeneration) return;
+
+    const connection = new HubConnectionBuilder()
+      .withUrl(environment.hubUrl)
+      .withAutomaticReconnect()
+      .build();
+
+    connection.on('homeChanged', (payload: HomeChanged) => this.onHomeChanged(payload));
+    await connection.start();
+    await connection.invoke('JoinHome', homeId);
+    if (generation !== this.listenGeneration) {
+      await connection.stop();
+      return;
+    }
+
+    this.connection = connection;
+    this.joinedHomeId = homeId;
+  }
+
+  private onHomeChanged(payload: HomeChanged) {
+    this.dashboard.reload();
+    if (payload.actorUserId !== this.userId() && payload.message) {
+      this.pushNotice(payload.message, false);
+    }
+    if (payload.alert) {
+      this.pushNotice(payload.alert, true);
+    }
+  }
+
+  private pushNotice(message: string, alert: boolean) {
+    const current = this.notices();
+    if (current[0]?.message === message) return;
+    this.notices.set([{ id: crypto.randomUUID(), message, alert }, ...current].slice(0, 5));
+  }
+
+  private async drawChart(canvas: HTMLCanvasElement, week: PulsePoint[]) {
+    const key = week.map(point => `${point.day}:${point.score ?? ''}`).join('|');
+    if (canvas.dataset['weekKey'] === key) return;
+    canvas.dataset['weekKey'] = key;
+
+    const { Chart, LineController, LineElement, PointElement, LinearScale, CategoryScale, Filler, Tooltip } =
+      await (this.chartReady ??= import('chart.js'));
+    if (!canvas.isConnected || canvas.dataset['weekKey'] !== key) return;
+
+    Chart.getChart(canvas)?.destroy();
+    Chart.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Filler, Tooltip);
+    new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels: week.map(point => this.dayLabel(point.day)),
+        datasets: [{
+          label: 'HomePulse',
+          data: week.map(point => point.score),
+          borderColor: '#009A96',
+          backgroundColor: 'rgba(55, 207, 203, 0.18)',
+          borderWidth: 3,
+          tension: 0.35,
+          fill: true,
+          spanGaps: false,
+          pointRadius: 4,
+          pointBackgroundColor: '#009A96'
+        }]
+      },
+      options: {
+        animation: false,
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { min: 0, max: 100, ticks: { stepSize: 20 } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  private dayLabel(day: string): string {
+    const date = new Date(`${day}T00:00:00Z`);
+    return date.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', timeZone: 'UTC' });
   }
 }

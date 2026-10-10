@@ -22,6 +22,80 @@ namespace DomusVibes.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("DomusVibes.Domain.Entities.ActivityEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("Completed")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("HomeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("HomeId", "CreatedAt");
+
+                    b.ToTable("ActivityEvents");
+                });
+
+            modelBuilder.Entity("DomusVibes.Domain.Entities.DailyStatus", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Availability")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Energy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("HomeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Mood")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("HomeId", "UserId", "Date")
+                        .IsUnique();
+
+                    b.ToTable("DailyStatuses");
+                });
+
             modelBuilder.Entity("DomusVibes.Domain.Entities.Home", b =>
                 {
                     b.Property<Guid>("Id")
@@ -65,6 +139,50 @@ namespace DomusVibes.Persistence.Migrations
                     b.ToTable("HomeMembers");
                 });
 
+            modelBuilder.Entity("DomusVibes.Domain.Entities.HomePulse", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CalculatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("CommunicationScore")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CompletedScore")
+                        .HasColumnType("integer");
+
+                    b.Property<DateOnly>("Day")
+                        .HasColumnType("date");
+
+                    b.Property<int>("EnergyScore")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("HomeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("LowMood")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("MissedScore")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MoodScore")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Score")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HomeId", "Day")
+                        .IsUnique();
+
+                    b.ToTable("HomePulses");
+                });
+
             modelBuilder.Entity("DomusVibes.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -88,6 +206,36 @@ namespace DomusVibes.Persistence.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("DomusVibes.Domain.Entities.ActivityEvent", b =>
+                {
+                    b.HasOne("DomusVibes.Domain.Entities.Home", null)
+                        .WithMany()
+                        .HasForeignKey("HomeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DomusVibes.Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DomusVibes.Domain.Entities.DailyStatus", b =>
+                {
+                    b.HasOne("DomusVibes.Domain.Entities.Home", null)
+                        .WithMany()
+                        .HasForeignKey("HomeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DomusVibes.Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("DomusVibes.Domain.Entities.HomeMember", b =>
                 {
                     b.HasOne("DomusVibes.Domain.Entities.Home", "Home")
@@ -105,6 +253,15 @@ namespace DomusVibes.Persistence.Migrations
                     b.Navigation("Home");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("DomusVibes.Domain.Entities.HomePulse", b =>
+                {
+                    b.HasOne("DomusVibes.Domain.Entities.Home", null)
+                        .WithMany()
+                        .HasForeignKey("HomeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("DomusVibes.Domain.Entities.Home", b =>

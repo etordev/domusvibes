@@ -9,7 +9,10 @@ function normalizeHomes(raw: unknown): HomeListItem[] {
   return raw.map((item: Record<string, unknown>) => ({
     id: String(item['id'] ?? item['Id'] ?? ''),
     name: String(item['name'] ?? item['Name'] ?? ''),
-    role: String(item['role'] ?? item['Role'] ?? '')
+    role: String(item['role'] ?? item['Role'] ?? ''),
+    score: item['score'] == null && item['Score'] == null
+      ? null
+      : Number(item['score'] ?? item['Score'])
   }));
 }
 

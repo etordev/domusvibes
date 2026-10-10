@@ -5,6 +5,7 @@ using DomusVibes.Application.Homes.Commands.JoinHomeByInviteCode;
 using DomusVibes.Application.Homes.Commands.LeaveHome;
 using DomusVibes.Application.Homes.Commands.RemoveMember;
 using DomusVibes.Application.Homes.Commands.UpdateHome;
+using DomusVibes.Application.Homes.Queries.GetHomeDashboard;
 using DomusVibes.Application.Homes.Queries.GetHomeDetails;
 using DomusVibes.Application.Homes.Queries.GetHomesByUserId;
 using MediatR;
@@ -41,6 +42,13 @@ namespace DomusVibes.Api.Controllers
         public async Task<IActionResult> GetByUser(Guid userId)
         {
             var result = await _mediator.Send(new GetHomesByUserIdQuery(userId));
+            return Ok(result);
+        }
+
+        [HttpGet("{homeId}/dashboard")]
+        public async Task<IActionResult> GetDashboard(Guid homeId, [FromQuery] Guid userId)
+        {
+            var result = await _mediator.Send(new GetHomeDashboardQuery(homeId, userId));
             return Ok(result);
         }
 
