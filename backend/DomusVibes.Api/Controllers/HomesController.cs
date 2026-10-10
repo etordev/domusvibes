@@ -12,6 +12,7 @@ using DomusVibes.Api.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using DomusVibes.Application.Homes.Queries.GetHomeDetails;
 using DomusVibes.Application.Homes.Queries.GetHomesByUserId;
+using DomusVibes.Application.Notices;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,11 +24,20 @@ namespace DomusVibes.Api.Controllers
     {
         private readonly IMediator _mediator;
         private readonly IHubContext<HomeHub> _hub;
+        private readonly HomeNoticeWriter _notices;
 
-        public HomesController(IMediator mediator, IHubContext<HomeHub> hub)
+        public HomesController(IMediator mediator, IHubContext<HomeHub> hub, HomeNoticeWriter notices)
         {
             _mediator = mediator;
             _hub = hub;
+            _notices = notices;
+        }
+
+        [HttpGet("notices")]
+        public async Task<IActionResult> Notices([FromQuery] Guid userId, [FromQuery] Guid? homeId, CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(new GetUnreadNoticesQuery(userId, homeId), cancellationToken);
+            return Ok(result);
         }
 
         [HttpPost]
@@ -96,16 +106,11 @@ namespace DomusVibes.Api.Controllers
             return Ok(new { updated = result });
         }
 
-        private Task Notify(Guid homeId, Guid actorUserId, string message)
+        private async Task Notify(Guid homeId, Guid actorUserId, string message)
         {
-            return _hub.Clients.Group(homeId.ToString("D")).SendAsync("homeChanged", new HomeChangedDto(
-                homeId,
-                actorUserId,
-                "",
-                "settings",
-                message,
-                null,
-                0));
+            var change = new HomeChangedDto(homeId, actorUserId, "", "settings", message, null, 0);
+            await _notices.RecordAsync(change);
+            await _hub.Clients.Group(homeId.ToString("D")).SendAsync("homeChanged", change);
         }
 
         [HttpPost("invite/generate")]

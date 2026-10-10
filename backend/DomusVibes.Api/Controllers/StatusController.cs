@@ -1,4 +1,5 @@
 using DomusVibes.Application.Status.Commands.UpdateDailyStatus;
+using DomusVibes.Application.Notices;
 using DomusVibes.Api.Hubs;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -12,18 +13,21 @@ namespace DomusVibes.Api.Controllers
     {
         private readonly IMediator _mediator;
         private readonly IHubContext<HomeHub> _hub;
+        private readonly HomeNoticeWriter _notices;
 
-        public StatusController(IMediator mediator, IHubContext<HomeHub> hub)
+        public StatusController(IMediator mediator, IHubContext<HomeHub> hub, HomeNoticeWriter notices)
         {
             _mediator = mediator;
             _hub = hub;
+            _notices = notices;
         }
 
         [HttpPut("daily")]
-        public async Task<IActionResult> UpdateDaily(UpdateDailyStatusCommand command)
+        public async Task<IActionResult> UpdateDaily(UpdateDailyStatusCommand command, CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(command);
-            await _hub.Clients.Group(result.HomeId.ToString("D")).SendAsync("homeChanged", result);
+            var result = await _mediator.Send(command, cancellationToken);
+            await _notices.RecordAsync(result, cancellationToken);
+            await _hub.Clients.Group(result.HomeId.ToString("D")).SendAsync("homeChanged", result, cancellationToken);
             return Ok(result);
         }
     }

@@ -62,7 +62,8 @@
     "EmptyText": "Leg deinen ersten Haushalt an oder tritt einem mit einem Einladungscode bei!",
     "CreateShort": "Haushalt anlegen",
     "JoinShort": "Beitreten",
-    "LoadFailed": "Die Haushalte konnten nicht geladen werden. Bitte erneut versuchen."
+    "LoadFailed": "Die Haushalte konnten nicht geladen werden. Bitte erneut versuchen.",
+    "WhileAway": "Während du weg warst"
   },
   "Create": {
     "Title": "Neuen Haushalt anlegen",
@@ -103,6 +104,9 @@
     "LegendOk": "40–69 okay",
     "LegendLow": "Unter 40 niedrig",
     "LowMoodAlert": "Die Stimmung im Haushalt ist niedrig.",
+    "TenantRemoved": "Ein Mitbewohner wurde aus dem Zuhause entfernt.",
+    "NameUpdated": "Der Name des Zuhauses wurde geändert.",
+    "RoleUpdated": "Die Rolle eines Mitbewohners wurde geändert.",
     "Month": "Monat",
     "Week": "Woche",
     "WholeMonth": "Ganzer Monat",
@@ -134,6 +138,8 @@
     "RenameFailed": "Der Haushalt konnte nicht umbenannt werden.",
     "ActivityTitle": "Letzte Aktivitäten",
     "LoggedLine": "{{name}} hat {{task}} als {{outcome}} eingetragen",
+    "LoggedOn": "{{name}} hat {{task}} als {{outcome}} am {{date}} eingetragen.",
+    "CheckinNotice": "{{name}} hat den heutigen Check-in aktualisiert.",
     "NoTasks": "Noch keine Haushaltsaufgaben",
     "InviteTitle": "Einladungscode",
     "InviteHint": "Erzeuge einen Code, den andere nutzen können, um diesem Haushalt beizutreten.",

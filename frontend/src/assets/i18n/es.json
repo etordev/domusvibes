@@ -62,7 +62,8 @@
     "EmptyText": "Crea tu primer hogar o únete a uno con un código de invitación.",
     "CreateShort": "Crear hogar",
     "JoinShort": "Unirme",
-    "LoadFailed": "No se han podido cargar los hogares. Inténtalo de nuevo."
+    "LoadFailed": "No se han podido cargar los hogares. Inténtalo de nuevo.",
+    "WhileAway": "Mientras no estabas"
   },
   "Create": {
     "Title": "Crear un hogar",
@@ -103,6 +104,9 @@
     "LegendOk": "40–69 aceptable",
     "LegendLow": "Menos de 40 baja",
     "LowMoodAlert": "El ánimo de la casa está bajo.",
+    "TenantRemoved": "Se eliminó un inquilino del hogar.",
+    "NameUpdated": "Se actualizó el nombre del hogar.",
+    "RoleUpdated": "Se actualizó el rol de un inquilino.",
     "Month": "Mes",
     "Week": "Semana",
     "WholeMonth": "Mes completo",
@@ -134,6 +138,8 @@
     "RenameFailed": "No se ha podido cambiar el nombre del hogar.",
     "ActivityTitle": "Actividad reciente",
     "LoggedLine": "{{name}} registró {{task}} como {{outcome}}",
+    "LoggedOn": "{{name}} registró {{task}} como {{outcome}} el {{date}}.",
+    "CheckinNotice": "{{name}} actualizó el registro de hoy.",
     "NoTasks": "Todavía no hay tareas del hogar",
     "InviteTitle": "Código de invitación",
     "InviteHint": "Genera un código para compartirlo y que otras personas puedan unirse a este hogar.",

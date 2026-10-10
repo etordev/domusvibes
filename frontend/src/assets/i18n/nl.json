@@ -62,7 +62,8 @@
     "EmptyText": "Maak je eerste huis of doe mee met een uitnodigingscode!",
     "CreateShort": "Huis maken",
     "JoinShort": "Deelnemen",
-    "LoadFailed": "De huizen konden niet worden geladen. Probeer het opnieuw."
+    "LoadFailed": "De huizen konden niet worden geladen. Probeer het opnieuw.",
+    "WhileAway": "Terwijl je weg was"
   },
   "Create": {
     "Title": "Nieuw huis maken",
@@ -103,6 +104,9 @@
     "LegendOk": "40–69 oké",
     "LegendLow": "Onder 40 laag",
     "LowMoodAlert": "De sfeer in huis is laag.",
+    "TenantRemoved": "Een bewoner is uit het huis verwijderd.",
+    "NameUpdated": "De naam van het huis is bijgewerkt.",
+    "RoleUpdated": "De rol van een bewoner is bijgewerkt.",
     "Month": "Maand",
     "Week": "Week",
     "WholeMonth": "Hele maand",
@@ -134,6 +138,8 @@
     "RenameFailed": "Het huis kon niet worden hernoemd.",
     "ActivityTitle": "Recente activiteit",
     "LoggedLine": "{{name}} heeft {{task}} als {{outcome}} vastgelegd",
+    "LoggedOn": "{{name}} heeft {{task}} als {{outcome}} vastgelegd op {{date}}.",
+    "CheckinNotice": "{{name}} heeft de check-in van vandaag bijgewerkt.",
     "NoTasks": "Nog geen huishoudtaken",
     "InviteTitle": "Uitnodigingscode",
     "InviteHint": "Maak een code die anderen kunnen gebruiken om dit huis te joinen.",

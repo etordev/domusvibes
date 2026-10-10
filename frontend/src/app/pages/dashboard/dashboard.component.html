@@ -19,6 +19,15 @@
     <p>{{ 'Dashboard.Subtitle' | translate }}</p>
   </div>
 
+  @if (notices.value().length > 0) {
+    <div class="missed-notices">
+      <h2>{{ 'Dashboard.WhileAway' | translate }}</h2>
+      @for (notice of notices.value(); track notice.id) {
+        <div class="notice" [class.notice-alert]="notice.alert">{{ noticeLine(notice) }}</div>
+      }
+    </div>
+  }
+
   <div class="actions-bar">
     <a routerLink="/homes/create" class="btn btn-primary">{{ 'Dashboard.Create' | translate }}</a>
     <a routerLink="/homes/join" class="btn btn-outline">{{ 'Dashboard.Join' | translate }}</a>

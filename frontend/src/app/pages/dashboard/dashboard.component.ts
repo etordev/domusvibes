@@ -8,6 +8,7 @@ import { ProfileNameComponent } from '../../components/profile-name/profile-name
 import { LanguageService } from '../../services/language.service';
 import { HomeListItem } from '../../services/api.service';
 import { environment } from '../../../environments/environment';
+import { noticeText } from '../../services/notice-text';
 
 function normalizeHomes(raw: unknown): HomeListItem[] {
   if (!Array.isArray(raw)) return [];
@@ -18,6 +19,23 @@ function normalizeHomes(raw: unknown): HomeListItem[] {
     score: item['score'] == null && item['Score'] == null
       ? null
       : Number(item['score'] ?? item['Score'])
+  }));
+}
+
+interface StoredNotice {
+  id: string;
+  homeName: string;
+  message: string;
+  alert: string;
+}
+
+function normalizeNotices(raw: unknown): StoredNotice[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((item: Record<string, unknown>) => ({
+    id: String(item['id'] ?? item['Id'] ?? ''),
+    homeName: String(item['homeName'] ?? item['HomeName'] ?? ''),
+    message: String(item['message'] ?? item['Message'] ?? ''),
+    alert: String(item['alert'] ?? item['Alert'] ?? '')
   }));
 }
 
@@ -48,6 +66,13 @@ export class DashboardComponent {
     defaultValue: [],
     parse: normalizeHomes
   });
+  readonly notices = httpResource<StoredNotice[]>(() => {
+    const id = this.userId();
+    return id ? `${environment.apiUrl}/homes/notices?userId=${id}` : undefined;
+  }, {
+    defaultValue: [],
+    parse: normalizeNotices
+  });
   readonly loadError = computed(() => {
     this.language.current();
     return resourceErrorMessage(this.homes.error(), this.translate.instant('Dashboard.LoadFailed'));
@@ -63,6 +88,13 @@ export class DashboardComponent {
 
       this.userId.set(storedUserId);
     });
+  }
+
+  noticeLine(notice: StoredNotice): string {
+    this.language.current();
+    const message = noticeText(this.translate, notice.message);
+    const alert = notice.alert ? noticeText(this.translate, notice.alert) : '';
+    return [notice.homeName, message, alert].filter(Boolean).join(' — ');
   }
 
   viewHomeDetails(homeId: string) {

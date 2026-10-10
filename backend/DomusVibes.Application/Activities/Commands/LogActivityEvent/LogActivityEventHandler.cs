@@ -47,19 +47,9 @@ namespace DomusVibes.Application.Activities.Commands.LogActivityEvent
                 request.UserId,
                 member.User.Name,
                 "activity",
-                $"{member.User.Name} logged {Label(request.Type)} as {outcome} on {day:d MMM}.",
+                $"activity|{member.User.Name}|{request.Type}|{outcome}|{day:yyyy-MM-dd}",
                 pulse.LowMood ? "The house mood is low." : null,
                 pulse.Score);
         }
-
-        private static string Label(string type) => type switch
-        {
-            "cleaning" => "cleaning",
-            "shopping" => "shopping",
-            "kitchen" => "the kitchen",
-            "trash" => "the trash",
-            "tidying" => "tidying",
-            _ => type
-        };
     }
 }

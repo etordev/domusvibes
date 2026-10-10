@@ -54,7 +54,7 @@ namespace DomusVibes.Application.Status.Commands.UpdateDailyStatus
                 request.UserId,
                 member.User.Name,
                 "status",
-                $"{member.User.Name} updated today's check-in.",
+                $"status|{member.User.Name}",
                 pulse.LowMood ? "The house mood is low." : null,
                 pulse.Score);
         }

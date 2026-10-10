@@ -62,7 +62,8 @@
     "EmptyText": "Create your first home or join one with an invite code!",
     "CreateShort": "Create Home",
     "JoinShort": "Join Home",
-    "LoadFailed": "Failed to load homes. Please try again."
+    "LoadFailed": "Failed to load homes. Please try again.",
+    "WhileAway": "While you were away"
   },
   "Create": {
     "Title": "Create New Home",
@@ -103,6 +104,9 @@
     "LegendOk": "40–69 okay",
     "LegendLow": "Under 40 low",
     "LowMoodAlert": "The house mood is low.",
+    "TenantRemoved": "A tenant was removed from the home.",
+    "NameUpdated": "The home name was updated.",
+    "RoleUpdated": "A tenant's role was updated.",
     "Month": "Month",
     "Week": "Week",
     "WholeMonth": "Whole month",
@@ -134,6 +138,8 @@
     "RenameFailed": "Failed to rename the home.",
     "ActivityTitle": "Recent activity",
     "LoggedLine": "{{name}} logged {{task}} as {{outcome}}",
+    "LoggedOn": "{{name}} logged {{task}} as {{outcome}} on {{date}}.",
+    "CheckinNotice": "{{name}} updated today's check-in.",
     "NoTasks": "No household tasks yet",
     "InviteTitle": "Invite Code",
     "InviteHint": "Generate an invite code to share with others so they can join this home.",

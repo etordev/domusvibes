@@ -62,7 +62,8 @@
     "EmptyText": "Créez votre premier foyer ou rejoignez-en un avec un code d'invitation !",
     "CreateShort": "Créer un foyer",
     "JoinShort": "Rejoindre",
-    "LoadFailed": "Impossible de charger les foyers. Veuillez réessayer."
+    "LoadFailed": "Impossible de charger les foyers. Veuillez réessayer.",
+    "WhileAway": "Pendant votre absence"
   },
   "Create": {
     "Title": "Créer un foyer",
@@ -103,6 +104,9 @@
     "LegendOk": "40–69 correct",
     "LegendLow": "Moins de 40 bas",
     "LowMoodAlert": "L'humeur de la maison est basse.",
+    "TenantRemoved": "Un occupant a été retiré du foyer.",
+    "NameUpdated": "Le nom du foyer a été mis à jour.",
+    "RoleUpdated": "Le rôle d'un occupant a été mis à jour.",
     "Month": "Mois",
     "Week": "Semaine",
     "WholeMonth": "Mois entier",
@@ -134,6 +138,8 @@
     "RenameFailed": "Impossible de renommer le foyer.",
     "ActivityTitle": "Activité récente",
     "LoggedLine": "{{name}} a noté {{task}} comme {{outcome}}",
+    "LoggedOn": "{{name}} a noté {{task}} comme {{outcome}} le {{date}}.",
+    "CheckinNotice": "{{name}} a mis à jour le bilan du jour.",
     "NoTasks": "Aucune tâche de la maison pour le moment",
     "InviteTitle": "Code d'invitation",
     "InviteHint": "Générez un code à partager pour que d'autres personnes rejoignent ce foyer.",

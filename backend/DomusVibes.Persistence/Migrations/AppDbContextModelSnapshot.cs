@@ -142,6 +142,53 @@ namespace DomusVibes.Persistence.Migrations
                     b.ToTable("HomeMembers");
                 });
 
+            modelBuilder.Entity("DomusVibes.Domain.Entities.HomeNotice", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ActorUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Alert")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("HomeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HomeId");
+
+                    b.ToTable("HomeNotices");
+                });
+
+            modelBuilder.Entity("DomusVibes.Domain.Entities.HomeNoticeReceipt", b =>
+                {
+                    b.Property<Guid>("NoticeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("ReadAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("NoticeId", "UserId");
+
+                    b.HasIndex("UserId", "ReadAt");
+
+                    b.ToTable("HomeNoticeReceipts");
+                });
+
             modelBuilder.Entity("DomusVibes.Domain.Entities.HomePulse", b =>
                 {
                     b.Property<Guid>("Id")
@@ -256,6 +303,28 @@ namespace DomusVibes.Persistence.Migrations
                     b.Navigation("Home");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("DomusVibes.Domain.Entities.HomeNotice", b =>
+                {
+                    b.HasOne("DomusVibes.Domain.Entities.Home", "Home")
+                        .WithMany()
+                        .HasForeignKey("HomeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Home");
+                });
+
+            modelBuilder.Entity("DomusVibes.Domain.Entities.HomeNoticeReceipt", b =>
+                {
+                    b.HasOne("DomusVibes.Domain.Entities.HomeNotice", "Notice")
+                        .WithMany()
+                        .HasForeignKey("NoticeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Notice");
                 });
 
             modelBuilder.Entity("DomusVibes.Domain.Entities.HomePulse", b =>

@@ -77,6 +77,30 @@
   padding: 3rem 2rem;
 }
 
+.missed-notices {
+  margin-bottom: 1.5rem;
+
+  h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #3D4852;
+    margin-bottom: 0.75rem;
+  }
+}
+
+.notice {
+  padding: 0.9rem 1rem;
+  border-radius: 8px;
+  background: #F3F4F6;
+  color: #3D4852;
+  margin-bottom: 0.75rem;
+}
+
+.notice-alert {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
 .dashboard-header {
   margin-bottom: 2rem;
 

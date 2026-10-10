@@ -1,5 +1,5 @@
 import { afterNextRender, Component, computed, effect, ElementRef, inject, OnDestroy, signal, viewChild } from '@angular/core';
-import { httpResource } from '@angular/common/http';
+import { httpResource, HttpClient } from '@angular/common/http';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { map } from 'rxjs';
@@ -10,6 +10,7 @@ import { ProfileNameComponent } from '../../components/profile-name/profile-name
 import { ApiService, HomeChanged, HomeDashboard, PulsePoint } from '../../services/api.service';
 import { LanguageService } from '../../services/language.service';
 import { environment } from '../../../environments/environment';
+import { noticeText } from '../../services/notice-text';
 
 function resourceErrorMessage(error: unknown, fallback: string): string {
   if (!error) return '';
@@ -156,6 +157,7 @@ function readDashboard(raw: unknown): HomeDashboard {
 export class HomeDetailsComponent implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly http = inject(HttpClient);
   private readonly apiService = inject(ApiService);
   private readonly translate = inject(TranslateService);
   private readonly language = inject(LanguageService);
@@ -237,6 +239,7 @@ export class HomeDetailsComponent implements OnDestroy {
       const user = this.userId();
       if (!id || !user) return;
       void this.listen(id);
+      void this.loadMissedNotices(id, user);
     });
 
     effect(() => {
@@ -314,8 +317,20 @@ export class HomeDetailsComponent implements OnDestroy {
 
   phrase(message: string): string {
     this.language.current();
-    if (message === 'The house mood is low.') return this.translate.instant('Home.LowMoodAlert');
-    return message;
+    return noticeText(this.translate, message);
+  }
+
+  private loadMissedNotices(homeId: string, userId: string) {
+    this.http.get<Array<Record<string, unknown>>>(
+      `${environment.apiUrl}/homes/notices?userId=${userId}&homeId=${homeId}`
+    ).subscribe(rows => {
+      for (const row of [...rows].reverse()) {
+        const message = String(row['message'] ?? row['Message'] ?? '');
+        const alert = row['alert'] ?? row['Alert'];
+        if (message) this.pushNotice(message, false);
+        if (typeof alert === 'string' && alert) this.pushNotice(alert, true);
+      }
+    });
   }
 
   activityWhen(value: string): string {

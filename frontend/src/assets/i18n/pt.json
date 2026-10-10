@@ -62,7 +62,8 @@
     "EmptyText": "Cria a tua primeira casa ou entra numa com um código de convite!",
     "CreateShort": "Criar casa",
     "JoinShort": "Entrar",
-    "LoadFailed": "Não foi possível carregar as casas. Tenta de novo."
+    "LoadFailed": "Não foi possível carregar as casas. Tenta de novo.",
+    "WhileAway": "Enquanto estiveste fora"
   },
   "Create": {
     "Title": "Criar uma casa",
@@ -103,6 +104,9 @@
     "LegendOk": "40–69 razoável",
     "LegendLow": "Abaixo de 40 baixa",
     "LowMoodAlert": "O humor da casa está baixo.",
+    "TenantRemoved": "Um membro foi removido da casa.",
+    "NameUpdated": "O nome da casa foi atualizado.",
+    "RoleUpdated": "O papel de um membro foi atualizado.",
     "Month": "Mês",
     "Week": "Semana",
     "WholeMonth": "Mês inteiro",
@@ -134,6 +138,8 @@
     "RenameFailed": "Não foi possível mudar o nome da casa.",
     "ActivityTitle": "Atividade recente",
     "LoggedLine": "{{name}} registou {{task}} como {{outcome}}",
+    "LoggedOn": "{{name}} registou {{task}} como {{outcome}} em {{date}}.",
+    "CheckinNotice": "{{name}} atualizou o registo de hoje.",
     "NoTasks": "Ainda não há tarefas da casa",
     "InviteTitle": "Código de convite",
     "InviteHint": "Gera um código para partilhares, para que outras pessoas possam entrar nesta casa.",

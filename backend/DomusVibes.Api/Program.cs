@@ -1,5 +1,6 @@
 using DVC.Api.Middleware;
 using DomusVibes.Api.Hubs;
+using DomusVibes.Application.Notices;
 using DomusVibes.Application.Users.Commands.CreateUser;
 using DomusVibes.Persistence;
 using FluentValidation;
@@ -46,6 +47,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // MediatR - registers all handlers in the CreateUserCommand assembly
 builder.Services.AddMediatR(typeof(CreateUserCommand).Assembly);
+builder.Services.AddScoped<HomeNoticeWriter>();
 
 // FluentValidation - we register validators from the assembly
 // builder.Services.AddScoped<IValidator<CreateUserCommand>, CreateUserValidator>();

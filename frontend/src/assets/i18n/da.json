@@ -62,7 +62,8 @@
     "EmptyText": "Opret dit første hjem, eller deltag i et med en invitationskode!",
     "CreateShort": "Opret hjem",
     "JoinShort": "Deltag",
-    "LoadFailed": "Hjemmene kunne ikke indlæses. Prøv igen."
+    "LoadFailed": "Hjemmene kunne ikke indlæses. Prøv igen.",
+    "WhileAway": "Mens du var væk"
   },
   "Create": {
     "Title": "Opret et hjem",
@@ -103,6 +104,9 @@
     "LegendOk": "40–69 okay",
     "LegendLow": "Under 40 lav",
     "LowMoodAlert": "Stemningen i hjemmet er lav.",
+    "TenantRemoved": "En beboer blev fjernet fra hjemmet.",
+    "NameUpdated": "Hjemmets navn blev opdateret.",
+    "RoleUpdated": "En beboers rolle blev opdateret.",
     "Month": "Måned",
     "Week": "Uge",
     "WholeMonth": "Hele måneden",
@@ -134,6 +138,8 @@
     "RenameFailed": "Hjemmet kunne ikke omdøbes.",
     "ActivityTitle": "Seneste aktivitet",
     "LoggedLine": "{{name}} registrerede {{task}} som {{outcome}}",
+    "LoggedOn": "{{name}} registrerede {{task}} som {{outcome}} den {{date}}.",
+    "CheckinNotice": "{{name}} opdaterede dagens check-in.",
     "NoTasks": "Ingen opgaver i hjemmet endnu",
     "InviteTitle": "Invitationskode",
     "InviteHint": "Lav en kode, som andre kan bruge til at blive en del af dette hjem.",
