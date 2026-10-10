@@ -1,11 +1,11 @@
 <header class="navbar">
   <div class="navbar-content">
-    <div class="brand">
+    <app-language-select />
+    <div class="brand brand-centered">
       <img src="assets/logo_domus_house.png" [alt]="'Nav.LogoAlt' | translate" />
       <span>DomusVibes</span>
     </div>
     <nav>
-      <app-language-select />
       <app-profile-name (saved)="dashboard.reload()" />
       <a routerLink="/dashboard" class="btn btn-outline"><span class="btn-label-full">{{ 'Nav.Back' | translate }}</span><span class="btn-label-short">{{ 'Nav.BackShort' | translate }}</span></a>
       <button class="btn btn-outline" type="button" (click)="logout()">{{ 'Nav.Logout' | translate }}</button>
