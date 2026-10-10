@@ -1,12 +1,19 @@
 :host {
   display: inline-flex;
   align-items: center;
-  gap: 0.65rem;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.65rem;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .user-name {
   color: #6B7280;
   font-weight: 500;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .edit-name {
@@ -17,4 +24,6 @@
   font-weight: 600;
   cursor: pointer;
   padding: 0;
+  flex: none;
+  white-space: nowrap;
 }

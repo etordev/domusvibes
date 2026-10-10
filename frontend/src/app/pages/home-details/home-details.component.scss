@@ -203,9 +203,13 @@
   position: relative;
 }
 
+.btn-label-short {
+  display: none;
+}
+
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
   gap: 1rem;
   margin-bottom: 1rem;
 
@@ -388,6 +392,7 @@
 .home-name-edit {
   display: flex;
   align-items: flex-end;
+  flex-wrap: wrap;
   gap: 0.75rem;
   margin-bottom: 1.5rem;
 
@@ -395,6 +400,8 @@
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
+    flex: 1 1 12rem;
+    min-width: 0;
     color: #3D4852;
     font-weight: 600;
     font-size: 0.9rem;
@@ -406,8 +413,11 @@
     padding: 0.7rem 0.8rem;
     font: inherit;
     font-weight: 500;
+    line-height: 1.2;
     color: #3D4852;
-    min-width: 220px;
+    width: 100%;
+    height: 2.75rem;
+    min-width: 0;
   }
 }
 
@@ -497,6 +507,7 @@
 
     code {
       flex: 1;
+      min-width: 0;
       padding: 0.75rem 1rem;
       background: white;
       border: 1px solid #E5E7EB;
@@ -506,6 +517,7 @@
       letter-spacing: 0.1em;
       color: #3D4852;
       font-family: 'Courier New', monospace;
+      overflow-wrap: anywhere;
     }
 
     .btn-copy {
@@ -569,12 +581,63 @@
 }
 
 @media (max-width: 768px) {
+  .navbar {
+    padding: 0.75rem 0;
+  }
+
+  .navbar-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 0 1rem;
+  }
+
+  .brand {
+    font-size: 1.3rem;
+  }
+
+  .brand img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .navbar nav {
+    margin-left: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .navbar app-profile-name {
+    grid-column: 1 / -1;
+  }
+
+  .navbar .btn {
+    width: 100%;
+    text-align: center;
+    padding: 0.6rem 0.75rem;
+  }
+
+  .btn-label-full {
+    display: none;
+  }
+
+  .btn-label-short {
+    display: inline;
+  }
+
+  .page-container {
+    margin: 1rem auto 2rem;
+    padding: 0 0.75rem;
+  }
+
   .home-details {
-    padding: 2rem 1.5rem;
+    padding: 1.25rem 1rem;
+    border-radius: 12px;
   }
 
   .home-header h1 {
-    font-size: 2rem;
+    font-size: 1.7rem;
   }
 
   .pulse-row,
@@ -582,7 +645,80 @@
   .form-grid {
     grid-template-columns: 1fr;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+  }
+
+  .pulse-row {
+    align-items: center;
+    text-align: center;
+  }
+
+  .pulse-legend {
+    justify-content: center;
+  }
+
+  .pulse-heart {
+    width: 124px;
+    height: 114px;
+
+    span {
+      font-size: 1.7rem;
+    }
+  }
+
+  .home-name-edit {
+    flex-direction: column;
+    align-items: stretch;
+
+    label {
+      flex: none;
+      width: 100%;
+    }
+
+    .btn {
+      width: 100%;
+      text-align: center;
+    }
+  }
+
+  .section-heading,
+  .chart-filters {
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .chart-filters {
+    flex-direction: column;
+  }
+
+  .chart-filters select,
+  .chart-filters input[type='month'] {
+    width: 100%;
+  }
+
+  .range-switch {
+    width: 100%;
+
+    button {
+      flex: 1;
+    }
+  }
+
+  .member-info {
+    flex: 1 1 8rem;
+    min-width: 0;
+  }
+
+  .member-actions {
+    flex: 1 1 100%;
+  }
+
+  .activity-time {
+    white-space: normal;
+  }
+
+  .section {
+    margin-bottom: 2rem;
   }
 
   .code-box {

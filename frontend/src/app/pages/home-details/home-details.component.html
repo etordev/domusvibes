@@ -6,7 +6,7 @@
     </div>
     <nav>
       <app-profile-name (saved)="dashboard.reload()" />
-      <a routerLink="/dashboard" class="btn btn-outline">← Back to Dashboard</a>
+      <a routerLink="/dashboard" class="btn btn-outline"><span class="btn-label-full">← Back to Dashboard</span><span class="btn-label-short">← Dashboard</span></a>
       <button class="btn btn-outline" type="button" (click)="logout()">Logout</button>
     </nav>
   </div>

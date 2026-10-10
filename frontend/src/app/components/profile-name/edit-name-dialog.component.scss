@@ -27,6 +27,7 @@ label {
 }
 
 input {
+  width: 100%;
   border: 1px solid #E5E7EB;
   border-radius: 8px;
   padding: 0.7rem 0.8rem;
@@ -69,5 +70,19 @@ button {
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+}
+
+@media (max-width: 480px) {
+  :host {
+    padding: 1.25rem 1rem 1rem;
+  }
+
+  .actions {
+    flex-direction: column-reverse;
+
+    button {
+      width: 100%;
+    }
   }
 }

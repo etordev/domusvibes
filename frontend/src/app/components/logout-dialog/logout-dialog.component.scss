@@ -54,3 +54,17 @@ button {
     border-color: #009A96;
   }
 }
+
+@media (max-width: 480px) {
+  :host {
+    padding: 1.25rem 1rem 1rem;
+  }
+
+  .actions {
+    flex-direction: column-reverse;
+
+    button {
+      width: 100%;
+    }
+  }
+}
