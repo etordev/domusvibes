@@ -31,14 +31,25 @@
 }
 
 .brand img {
-  width: 38px;
-  height: 38px;
+  width: 52px;
+  height: 52px;
+  flex: none;
 }
 
 .nav-actions {
   display: flex;
   align-items: center;
   gap: 1rem;
+}
+
+@media (min-width: 769px) {
+  .navbar-content {
+    width: 100%;
+  }
+
+  .nav-actions {
+    margin-left: auto;
+  }
 }
 
 .user-name {
