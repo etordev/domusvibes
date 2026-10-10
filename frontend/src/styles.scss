@@ -2,3 +2,7 @@
 @import './app/styles/reset';
 @import './app/styles/variables';
 @import './app/styles/mixins';
+
+.cdk-overlay-backdrop.dv-dialog-backdrop {
+  background: rgba(61, 72, 82, 0.45);
+}

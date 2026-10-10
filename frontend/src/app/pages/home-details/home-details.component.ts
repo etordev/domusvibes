@@ -3,6 +3,7 @@ import { httpResource } from '@angular/common/http';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { map } from 'rxjs';
+import { LogoutPrompt } from '../../components/logout-dialog/logout-prompt';
 import { ApiService, HomeChanged, HomeDashboard, PulsePoint } from '../../services/api.service';
 import { environment } from '../../../environments/environment';
 
@@ -178,11 +179,10 @@ export class HomeDetailsComponent implements OnDestroy {
     return id === this.userId();
   }
 
+  private logoutPrompt = inject(LogoutPrompt);
+
   logout() {
-    localStorage.removeItem('userId');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('userName');
-    this.router.navigate(['/']);
+    this.logoutPrompt.ask();
   }
 
   scoreTone(score: number): string {

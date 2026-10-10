@@ -95,22 +95,49 @@
   gap: 1.5rem;
 }
 
-.pulse-score {
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  font-weight: 700;
-  color: white;
-  background: #37CFCB;
+.pulse-heart {
+  position: relative;
+  width: 148px;
+  height: 136px;
   flex: none;
+  animation: heartbeat 1.35s ease-in-out infinite;
 
-  &.good { background: #009A96; }
-  &.ok { background: #D97706; }
-  &.low { background: #DC2626; }
+  svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: #37CFCB;
+    filter: drop-shadow(0 8px 10px rgba(0, 154, 150, 0.22));
+  }
+
+  span {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  &.good svg { fill: #009A96; }
+  &.ok svg { fill: #D97706; }
+  &.low svg { fill: #DC2626; }
+}
+
+@keyframes heartbeat {
+  0%, 55%, 100% { transform: scale(1); }
+  12% { transform: scale(1.1); }
+  24% { transform: scale(1); }
+  36% { transform: scale(1.06); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-heart {
+    animation: none;
+  }
 }
 
 .pulse-label {
@@ -122,6 +149,40 @@
 .pulse-summary {
   margin: 0;
   color: #6B7280;
+}
+
+.pulse-meaning {
+  margin: 0.75rem 0 0.45rem;
+  color: #3D4852;
+  font-size: 0.9rem;
+}
+
+.pulse-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: #6B7280;
+  font-size: 0.85rem;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .swatch {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    background: #37CFCB;
+
+    &.good { background: #009A96; }
+    &.ok { background: #D97706; }
+    &.low { background: #DC2626; }
+  }
 }
 
 .notice {

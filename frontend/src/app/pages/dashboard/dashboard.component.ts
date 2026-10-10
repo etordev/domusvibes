@@ -1,6 +1,7 @@
 import { afterNextRender, Component, computed, inject, signal } from '@angular/core';
 import { httpResource } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
+import { LogoutPrompt } from '../../components/logout-dialog/logout-prompt';
 import { HomeListItem } from '../../services/api.service';
 import { environment } from '../../../environments/environment';
 
@@ -64,10 +65,9 @@ export class DashboardComponent {
     this.router.navigate(['/home', homeId]);
   }
 
+  private logoutPrompt = inject(LogoutPrompt);
+
   logout() {
-    localStorage.removeItem('userId');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('userName');
-    this.router.navigate(['/']);
+    this.logoutPrompt.ask();
   }
 }

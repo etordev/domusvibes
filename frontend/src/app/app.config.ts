@@ -5,6 +5,7 @@ import { provideClientHydration, withNoIncrementalHydration } from '@angular/pla
 import { provideHttpClient, HttpClient } from '@angular/common/http';
 
 // 🌍 ngx-translate
+import { DialogModule } from '@angular/cdk/dialog';
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
 
@@ -28,6 +29,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(),
 
     importProvidersFrom(
+      DialogModule,
       TranslateModule.forRoot({
         loader: {
           provide: TranslateLoader,
