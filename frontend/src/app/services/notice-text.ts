@@ -21,9 +21,14 @@ export function noticeText(translate: TranslateService, message: string): string
   const key = knownNotices[message];
   if (key) return translate.instant(key);
 
-  const structuredActivity = /^activity\|([^|]*)\|([^|]*)\|(done|missed)\|(\d{4}-\d{2}-\d{2})$/.exec(message);
+  const structuredActivity = /^(activity|activity-updated|activity-removed)\|([^|]*)\|([^|]*)\|(done|missed)\|(\d{4}-\d{2}-\d{2})$/.exec(message);
   if (structuredActivity) {
-    return loggedOn(translate, structuredActivity[1], structuredActivity[2], structuredActivity[3], structuredActivity[4]);
+    const key = structuredActivity[1] === 'activity-updated'
+      ? 'Home.UpdatedOn'
+      : structuredActivity[1] === 'activity-removed'
+        ? 'Home.RemovedOn'
+        : 'Home.LoggedOn';
+    return activityLine(translate, key, structuredActivity[2], structuredActivity[3], structuredActivity[4], structuredActivity[5]);
   }
 
   const englishActivity = /^(.+) logged (.+) as (done|missed) on (\d{1,2}) ([A-Za-z]{3})\.?$/.exec(message);
@@ -34,7 +39,7 @@ export function noticeText(translate: TranslateService, message: string): string
       const day = englishActivity[4].padStart(2, '0');
       const monthNumber = String(month + 1).padStart(2, '0');
       const year = new Date().getFullYear();
-      return loggedOn(translate, englishActivity[1], task, englishActivity[3], `${year}-${monthNumber}-${day}`);
+      return activityLine(translate, 'Home.LoggedOn', englishActivity[1], task, englishActivity[3], `${year}-${monthNumber}-${day}`);
     }
   }
 
@@ -51,13 +56,13 @@ export function noticeText(translate: TranslateService, message: string): string
   return message;
 }
 
-function loggedOn(translate: TranslateService, name: string, task: string, outcome: string, isoDate: string): string {
+function activityLine(translate: TranslateService, key: string, name: string, task: string, outcome: string, isoDate: string): string {
   const date = new Date(`${isoDate}T00:00:00`);
   const formatted = Number.isNaN(date.getTime())
     ? isoDate
     : date.toLocaleDateString(translate.currentLang || 'en', { day: 'numeric', month: 'short' });
   const taskLabel = translate.instant(`Tasks.${task}`);
-  return translate.instant('Home.LoggedOn', {
+  return translate.instant(key, {
     name,
     task: taskLabel.startsWith('Tasks.') ? task : taskLabel,
     outcome: translate.instant(`Outcome.${outcome}`),

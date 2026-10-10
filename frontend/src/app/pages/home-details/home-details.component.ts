@@ -1,4 +1,4 @@
-import { afterNextRender, Component, computed, effect, ElementRef, inject, OnDestroy, signal, viewChild } from '@angular/core';
+import { afterNextRender, Component, computed, effect, ElementRef, inject, OnDestroy, signal, viewChild, WritableSignal } from '@angular/core';
 import { httpResource, HttpClient } from '@angular/common/http';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -7,10 +7,13 @@ import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { LanguageSelectComponent } from '../../components/language-select/language-select.component';
 import { LogoutPrompt } from '../../components/logout-dialog/logout-prompt';
 import { ProfileNameComponent } from '../../components/profile-name/profile-name.component';
-import { ApiService, HomeChanged, HomeDashboard, PulsePoint } from '../../services/api.service';
+import { Dialog } from '@angular/cdk/dialog';
+import { ApiService, ActivityItem, HomeChanged, HomeDashboard, PulsePoint } from '../../services/api.service';
+import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
 import { LanguageService } from '../../services/language.service';
 import { environment } from '../../../environments/environment';
 import { noticeText } from '../../services/notice-text';
+import { SessionService } from '../../services/session.service';
 
 function resourceErrorMessage(error: unknown, fallback: string): string {
   if (!error) return '';
@@ -133,6 +136,7 @@ function readDashboard(raw: unknown): HomeDashboard {
     })),
     recentActivities: activities.map(activity => ({
       id: text(activity['id']),
+      userId: text(activity['userId']),
       userName: text(activity['userName']),
       type: text(activity['type']),
       completed: Boolean(activity['completed']),
@@ -162,6 +166,8 @@ export class HomeDetailsComponent implements OnDestroy {
   private readonly translate = inject(TranslateService);
   private readonly language = inject(LanguageService);
   private readonly userId = signal<string | null>(null);
+  private readonly session = inject(SessionService);
+  private readonly dialog = inject(Dialog);
   private connection: { stop: () => Promise<void> } | null = null;
   private joinedHomeId = '';
   private listenGeneration = 0;
@@ -178,7 +184,7 @@ export class HomeDetailsComponent implements OnDestroy {
     const id = this.homeId();
     const userId = this.userId();
     if (!id || !userId) return undefined;
-    return `${environment.apiUrl}/homes/${id}/dashboard?userId=${userId}&month=${this.selectedMonth()}-01`;
+    return `${environment.apiUrl}/homes/${id}/dashboard?month=${this.selectedMonth()}-01`;
   }, { parse: readDashboard });
   readonly actionError = signal('');
   readonly detailsError = computed(() => {
@@ -189,6 +195,17 @@ export class HomeDetailsComponent implements OnDestroy {
   readonly isGeneratingInvite = signal(false);
   readonly isSavingStatus = signal(false);
   readonly isLoggingActivity = signal(false);
+  readonly editingId = signal<string | null>(null);
+  readonly editType = signal('cleaning');
+  readonly editDone = signal(true);
+  readonly editDate = signal(localDateInput());
+  readonly editComment = signal('');
+  readonly isSavingEdit = signal(false);
+  readonly toastItem = signal<{ id: number; message: string; error: boolean } | null>(null);
+  readonly checkinNotice = signal<{ id: number; message: string; error: boolean } | null>(null);
+  readonly activityNotice = signal<{ id: number; message: string; error: boolean } | null>(null);
+  private toastSeq = 0;
+  private toastTimer: ReturnType<typeof setTimeout> | null = null;
   readonly notices = signal<Array<{ id: string; message: string; alert: boolean }>>([]);
   readonly mood = signal('normal');
   readonly energy = signal('medium');
@@ -226,8 +243,8 @@ export class HomeDetailsComponent implements OnDestroy {
 
   constructor() {
     afterNextRender(() => {
-      const storedUserId = localStorage.getItem('userId');
-      if (!storedUserId) {
+      const storedUserId = this.session.userId();
+      if (!this.session.token() || !storedUserId) {
         this.router.navigate(['/login']);
         return;
       }
@@ -239,7 +256,7 @@ export class HomeDetailsComponent implements OnDestroy {
       const user = this.userId();
       if (!id || !user) return;
       void this.listen(id);
-      void this.loadMissedNotices(id, user);
+      void this.loadMissedNotices(id);
     });
 
     effect(() => {
@@ -273,6 +290,8 @@ export class HomeDetailsComponent implements OnDestroy {
   ngOnDestroy() {
     this.listenGeneration += 1;
     void this.connection?.stop();
+    if (this.toastTimer) clearTimeout(this.toastTimer);
+    for (const timer of this.noticeTimers.values()) clearTimeout(timer);
   }
 
   isCurrentUser(id: string): boolean {
@@ -320,9 +339,9 @@ export class HomeDetailsComponent implements OnDestroy {
     return noticeText(this.translate, message);
   }
 
-  private loadMissedNotices(homeId: string, userId: string) {
+  private loadMissedNotices(homeId: string) {
     this.http.get<Array<Record<string, unknown>>>(
-      `${environment.apiUrl}/homes/notices?userId=${userId}&homeId=${homeId}`
+      `${environment.apiUrl}/homes/notices?homeId=${homeId}`
     ).subscribe(rows => {
       for (const row of [...rows].reverse()) {
         const message = String(row['message'] ?? row['Message'] ?? '');
@@ -380,10 +399,14 @@ export class HomeDetailsComponent implements OnDestroy {
     }).subscribe({
       next: () => {
         this.isSavingStatus.set(false);
+        this.showToast(this.translate.instant('Home.CheckinSaved'));
+        this.flashNotice(this.checkinNotice, this.translate.instant('Home.CheckinSaved'));
         this.dashboard.reload();
       },
       error: (error) => {
-        this.actionError.set(error.error?.error || error.error?.message || this.translate.instant('Home.CheckinFailed'));
+        const message = error.error?.error || error.error?.message || this.translate.instant('Home.CheckinFailed');
+        this.showToast(message, true);
+        this.flashNotice(this.checkinNotice, message, true);
         this.isSavingStatus.set(false);
       }
     });
@@ -408,13 +431,124 @@ export class HomeDetailsComponent implements OnDestroy {
         this.activityComment.set('');
         this.activityDate.set(localDateInput());
         this.isLoggingActivity.set(false);
+        this.showToast(this.translate.instant('Home.ActivityAdded'));
+        this.flashNotice(this.activityNotice, this.translate.instant('Home.ActivityAdded'));
         this.dashboard.reload();
       },
       error: (error) => {
-        this.actionError.set(error.error?.error || error.error?.message || this.translate.instant('Home.LogFailed'));
+        const message = error.error?.error || error.error?.message || this.translate.instant('Home.LogFailed');
+        this.showToast(message, true);
+        this.flashNotice(this.activityNotice, message, true);
         this.isLoggingActivity.set(false);
       }
     });
+  }
+
+  beginActivityEdit(activity: ActivityItem) {
+    this.editingId.set(activity.id);
+    this.editType.set(activity.type);
+    this.editDone.set(activity.completed);
+    this.editDate.set(activity.occurredOn.slice(0, 10));
+    this.editComment.set(activity.comment ?? '');
+    this.actionError.set('');
+  }
+
+  cancelActivityEdit() {
+    this.editingId.set(null);
+  }
+
+  setEditType(event: Event) { this.editType.set((event.target as HTMLSelectElement).value); }
+  setEditDone(event: Event) { this.editDone.set((event.target as HTMLSelectElement).value === 'done'); }
+  setEditDate(event: Event) { this.editDate.set((event.target as HTMLInputElement).value); }
+  setEditComment(event: Event) { this.editComment.set((event.target as HTMLInputElement).value); }
+
+  saveActivityEdit() {
+    const homeId = this.homeId();
+    const userId = this.userId();
+    const activityId = this.editingId();
+    if (!homeId || !userId || !activityId || !this.editDate()) return;
+
+    this.isSavingEdit.set(true);
+    this.actionError.set('');
+    this.apiService.updateActivity(activityId, {
+      activityId,
+      homeId,
+      userId,
+      type: this.editType(),
+      completed: this.editDone(),
+      comment: this.editComment().trim() || null,
+      occurredOn: this.editDate()
+    }).subscribe({
+      next: () => {
+        this.editingId.set(null);
+        this.isSavingEdit.set(false);
+        this.showToast(this.translate.instant('Home.ActivityUpdated'));
+        this.dashboard.reload();
+      },
+      error: (error) => {
+        this.actionError.set(error.error?.error || error.error?.message || this.translate.instant('Home.UpdateFailed'));
+        this.isSavingEdit.set(false);
+      }
+    });
+  }
+
+  removeActivity(activity: ActivityItem) {
+    const homeId = this.homeId();
+    if (!homeId) return;
+
+    this.dialog.open<boolean>(ConfirmDialogComponent, {
+      role: 'alertdialog',
+      ariaLabel: this.translate.instant('Home.RemoveActivityTitle'),
+      data: {
+        titleKey: 'Home.RemoveActivityTitle',
+        bodyKey: 'Home.RemoveActivityConfirm',
+        cancelKey: 'Logout.Cancel',
+        confirmKey: 'Home.Remove'
+      },
+      backdropClass: 'dv-dialog-backdrop',
+      panelClass: 'dv-dialog-pane',
+      autoFocus: 'first-tabbable',
+      width: '420px',
+      maxWidth: 'calc(100vw - 2rem)'
+    }).closed.subscribe(confirmed => {
+      if (!confirmed) return;
+      this.actionError.set('');
+      this.apiService.removeActivity(activity.id, homeId).subscribe({
+        next: () => {
+          if (this.editingId() === activity.id) this.editingId.set(null);
+          this.showToast(this.translate.instant('Home.ActivityRemoved'));
+          this.dashboard.reload();
+        },
+        error: (error) => {
+          this.actionError.set(error.error?.error || error.error?.message || this.translate.instant('Home.RemoveActivityFailed'));
+        }
+      });
+    });
+  }
+
+  private noticeTimers = new Map<WritableSignal<{ id: number; message: string; error: boolean } | null>, ReturnType<typeof setTimeout>>();
+
+  private flashNotice(
+    target: WritableSignal<{ id: number; message: string; error: boolean } | null>,
+    message: string,
+    error = false
+  ) {
+    const id = ++this.toastSeq;
+    target.set({ id, message, error });
+    const pending = this.noticeTimers.get(target);
+    if (pending) clearTimeout(pending);
+    this.noticeTimers.set(target, setTimeout(() => {
+      if (target()?.id === id) target.set(null);
+    }, 4000));
+  }
+
+  private showToast(message: string, error = false) {
+    const id = ++this.toastSeq;
+    this.toastItem.set({ id, message, error });
+    if (this.toastTimer) clearTimeout(this.toastTimer);
+    this.toastTimer = setTimeout(() => {
+      if (this.toastItem()?.id === id) this.toastItem.set(null);
+    }, 3600);
   }
 
   saveHomeName() {
@@ -518,7 +652,9 @@ export class HomeDetailsComponent implements OnDestroy {
     if (generation !== this.listenGeneration) return;
 
     const connection = new HubConnectionBuilder()
-      .withUrl(environment.hubUrl)
+      .withUrl(environment.hubUrl, {
+        accessTokenFactory: () => this.session.token() ?? ''
+      })
       .withAutomaticReconnect()
       .build();
 

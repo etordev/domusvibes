@@ -16,7 +16,13 @@ namespace DomusVibes.Application.Homes.Queries.GetHomeDetails
 
         public async Task<HomeDetailsDto> Handle(GetHomeDetailsQuery request, CancellationToken cancellationToken)
         {
-            // Load home + members + user data
+            var isMember = await _db.HomeMembers.AnyAsync(
+                m => m.HomeId == request.HomeId && m.UserId == request.UserId,
+                cancellationToken);
+
+            if (!isMember)
+                throw new UnauthorizedAccessException("You are not a member of this home.");
+
             var home = await _db.Homes
                 .Where(h => h.Id == request.HomeId)
                 .Select(h => new HomeDetailsDto

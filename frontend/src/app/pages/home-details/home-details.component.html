@@ -1,3 +1,7 @@
+@if (toastItem(); as toast) {
+  <div class="toast" [class.toast-error]="toast.error" role="status">{{ toast.message }}</div>
+}
+
 <header class="navbar">
   <div class="navbar-content">
     <app-language-select />
@@ -136,6 +140,9 @@
         <button class="btn btn-primary" type="button" (click)="saveStatus()" [disabled]="isSavingStatus()">
           {{ isSavingStatus() ? ('Home.Saving' | translate) : ('Home.SaveCheckin' | translate) }}
         </button>
+        @if (checkinNotice(); as notice) {
+          <p class="action-notice" [class.action-notice-error]="notice.error" role="status">{{ notice.message }}</p>
+        }
       </div>
 
       <div class="section">
@@ -171,6 +178,9 @@
         <button class="btn btn-primary" type="button" (click)="logActivity()" [disabled]="isLoggingActivity()">
           {{ isLoggingActivity() ? ('Home.Saving' | translate) : ('Home.LogTask' | translate) }}
         </button>
+        @if (activityNotice(); as notice) {
+          <p class="action-notice" [class.action-notice-error]="notice.error" role="status">{{ notice.message }}</p>
+        }
       </div>
 
       <div class="section">
@@ -226,13 +236,57 @@
           <div class="activity-list">
             @for (activity of details.recentActivities; track activity.id) {
               <div class="activity-row">
-                <div>
-                  {{ loggedLine(activity) }}
-                  @if (activity.comment) {
-                    <span class="activity-note">“{{ activity.comment }}”</span>
-                  }
-                </div>
-                <span class="activity-time">{{ activityWhen(activity.occurredOn || activity.createdAt) }}</span>
+                @if (editingId() === activity.id) {
+                  <div class="activity-edit">
+                    <label>
+                      {{ 'Home.Task' | translate }}
+                      <select (change)="setEditType($event)">
+                        <option value="cleaning" [selected]="editType() === 'cleaning'">{{ 'Tasks.cleaning' | translate }}</option>
+                        <option value="shopping" [selected]="editType() === 'shopping'">{{ 'Tasks.shopping' | translate }}</option>
+                        <option value="kitchen" [selected]="editType() === 'kitchen'">{{ 'Tasks.kitchen' | translate }}</option>
+                        <option value="trash" [selected]="editType() === 'trash'">{{ 'Tasks.trash' | translate }}</option>
+                        <option value="tidying" [selected]="editType() === 'tidying'">{{ 'Tasks.tidying' | translate }}</option>
+                      </select>
+                    </label>
+                    <label>
+                      {{ 'Home.Outcome' | translate }}
+                      <select (change)="setEditDone($event)">
+                        <option value="done" [selected]="editDone()">{{ 'Outcome.Done' | translate }}</option>
+                        <option value="missed" [selected]="!editDone()">{{ 'Outcome.Missed' | translate }}</option>
+                      </select>
+                    </label>
+                    <label>
+                      {{ 'Home.Date' | translate }}
+                      <input type="date" [value]="editDate()" [max]="todayDate()" (change)="setEditDate($event)" />
+                    </label>
+                    <label>
+                      {{ 'Home.Note' | translate }}
+                      <input [value]="editComment()" (input)="setEditComment($event)" maxlength="200" [placeholder]="'Home.Optional' | translate" />
+                    </label>
+                    <div class="activity-actions">
+                      <button class="btn btn-primary" type="button" (click)="saveActivityEdit()" [disabled]="isSavingEdit()">
+                        {{ isSavingEdit() ? ('Home.Saving' | translate) : ('Profile.Save' | translate) }}
+                      </button>
+                      <button class="btn btn-outline" type="button" (click)="cancelActivityEdit()">{{ 'Profile.Cancel' | translate }}</button>
+                    </div>
+                  </div>
+                } @else {
+                  <div>
+                    {{ loggedLine(activity) }}
+                    @if (activity.comment) {
+                      <span class="activity-note">“{{ activity.comment }}”</span>
+                    }
+                  </div>
+                  <div class="activity-side">
+                    <span class="activity-time">{{ activityWhen(activity.occurredOn || activity.createdAt) }}</span>
+                    @if (isCurrentUser(activity.userId)) {
+                      <div class="activity-actions">
+                        <button class="btn btn-outline" type="button" (click)="beginActivityEdit(activity)">{{ 'Home.EditActivity' | translate }}</button>
+                        <button class="btn btn-danger" type="button" (click)="removeActivity(activity)">{{ 'Home.Remove' | translate }}</button>
+                      </div>
+                    }
+                  </div>
+                }
               </div>
             }
           </div>

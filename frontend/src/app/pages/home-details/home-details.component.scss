@@ -291,6 +291,103 @@
   white-space: nowrap;
 }
 
+.activity-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.55rem;
+}
+
+.activity-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.activity-edit {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.75rem;
+  width: 100%;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    color: #6B7280;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  select,
+  input {
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 0.55rem 0.7rem;
+    font: inherit;
+    color: #3D4852;
+    background: white;
+  }
+
+  .activity-actions {
+    align-items: center;
+  }
+}
+
+.toast {
+  position: fixed;
+  top: 6.5rem;
+  right: 1.25rem;
+  z-index: 80;
+  max-width: min(22rem, calc(100vw - 2rem));
+  padding: 0.85rem 1.05rem;
+  border-radius: 10px;
+  background: #009A96;
+  color: white;
+  font-weight: 600;
+  line-height: 1.35;
+  box-shadow: 0 10px 28px rgba(0, 90, 88, 0.28);
+  pointer-events: none;
+  animation: toast-life 3.6s ease forwards;
+}
+
+.toast.toast-error {
+  background: #DC2626;
+  box-shadow: 0 10px 28px rgba(153, 27, 27, 0.28);
+}
+
+.action-notice {
+  margin: 0.85rem 0 0;
+  font-weight: 700;
+  color: #009A96;
+  animation: notice-life 4s ease forwards;
+}
+
+.action-notice-error {
+  color: #DC2626;
+}
+
+@keyframes notice-life {
+  0% { opacity: 0; }
+  6% { opacity: 1; }
+  78% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes toast-life {
+  0% { opacity: 0; transform: translateY(-0.45rem); }
+  10% { opacity: 1; transform: translateY(0); }
+  72% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-0.3rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast,
+  .action-notice {
+    animation: none;
+  }
+}
+
 .section-heading {
   display: flex;
   align-items: flex-end;
@@ -714,6 +811,15 @@
   .pulse-row {
     align-items: center;
     text-align: center;
+  }
+
+  .activity-side {
+    align-items: stretch;
+  }
+
+  .toast {
+    top: 11.5rem;
+    right: 0.75rem;
   }
 
   .pulse-legend {

@@ -107,6 +107,7 @@ namespace DomusVibes.Application.Homes.Queries.GetHomeDashboard
                     .Join(_db.Users, a => a.UserId, u => u.Id, (a, u) => new ActivityItemDto
                     {
                         Id = a.Id,
+                        UserId = a.UserId,
                         UserName = u.Name,
                         Type = a.Type,
                         Completed = a.Completed,

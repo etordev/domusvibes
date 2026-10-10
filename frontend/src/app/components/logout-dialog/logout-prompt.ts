@@ -3,12 +3,14 @@ import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { LogoutDialogComponent } from './logout-dialog.component';
+import { SessionService } from '../../services/session.service';
 
 @Injectable({ providedIn: 'root' })
 export class LogoutPrompt {
   private dialog = inject(Dialog);
   private router = inject(Router);
   private translate = inject(TranslateService);
+  private session = inject(SessionService);
 
   ask() {
     this.dialog.open<boolean>(LogoutDialogComponent, {
@@ -21,9 +23,7 @@ export class LogoutPrompt {
       maxWidth: 'calc(100vw - 2rem)'
     }).closed.subscribe(confirmed => {
       if (!confirmed) return;
-      localStorage.removeItem('userId');
-      localStorage.removeItem('userEmail');
-      localStorage.removeItem('userName');
+      this.session.clear();
       void this.router.navigate(['/']);
     });
   }
