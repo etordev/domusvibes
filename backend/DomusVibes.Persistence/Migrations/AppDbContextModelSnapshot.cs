@@ -40,6 +40,9 @@ namespace DomusVibes.Persistence.Migrations
                     b.Property<Guid>("HomeId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateOnly>("OccurredOn")
+                        .HasColumnType("date");
+
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasColumnType("text");

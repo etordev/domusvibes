@@ -13,6 +13,11 @@ function resourceErrorMessage(error: unknown, fallback: string): string {
   return httpError.error?.error || httpError.error?.message || httpError.message || fallback;
 }
 
+function localDateInput(date = new Date()): string {
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 10);
+}
+
 function text(value: unknown, fallback = ''): string {
   return value == null ? fallback : String(value);
 }
@@ -56,6 +61,7 @@ function readDashboard(raw: unknown): HomeDashboard {
       type: text(activity['type']),
       completed: Boolean(activity['completed']),
       comment: activity['comment'] == null ? null : text(activity['comment']),
+      occurredOn: text(activity['occurredOn']),
       createdAt: text(activity['createdAt'])
     })),
     week: week.map(point => ({
@@ -81,9 +87,11 @@ export class HomeDetailsComponent implements OnDestroy {
   private joinedHomeId = '';
   private listenGeneration = 0;
   private statusReady = false;
+  private knownHomeName = '';
   private chartReady: Promise<typeof import('chart.js')> | null = null;
   private readonly chartCanvas = viewChild<ElementRef<HTMLCanvasElement>>('pulseChart');
 
+  readonly userName = signal('');
   readonly homeId = toSignal(
     this.route.paramMap.pipe(map(params => params.get('id') ?? '')),
     { initialValue: this.route.snapshot.paramMap.get('id') ?? '' }
@@ -109,6 +117,13 @@ export class HomeDetailsComponent implements OnDestroy {
   readonly activityType = signal('cleaning');
   readonly activityDone = signal(true);
   readonly activityComment = signal('');
+  readonly activityDate = signal(localDateInput());
+  readonly homeName = signal('');
+  readonly isSavingHome = signal(false);
+  readonly isOwner = computed(() => {
+    const id = this.userId();
+    return (this.dashboard.value()?.members ?? []).some(member => member.userId === id && member.role === 'owner');
+  });
 
   constructor() {
     afterNextRender(() => {
@@ -118,6 +133,7 @@ export class HomeDetailsComponent implements OnDestroy {
         return;
       }
       this.userId.set(storedUserId);
+      this.userName.set(localStorage.getItem('userName') || 'User');
     });
 
     effect(() => {
@@ -137,6 +153,15 @@ export class HomeDetailsComponent implements OnDestroy {
     });
 
     effect(() => {
+      const name = this.dashboard.value()?.homeName ?? '';
+      if (!name || name === this.knownHomeName) return;
+      if (!this.homeName() || this.homeName() === this.knownHomeName) {
+        this.homeName.set(name);
+      }
+      this.knownHomeName = name;
+    });
+
+    effect(() => {
       const canvas = this.chartCanvas()?.nativeElement;
       const week = this.dashboard.value()?.week;
       if (!canvas || !week?.length) return;
@@ -147,6 +172,17 @@ export class HomeDetailsComponent implements OnDestroy {
   ngOnDestroy() {
     this.listenGeneration += 1;
     void this.connection?.stop();
+  }
+
+  isCurrentUser(id: string): boolean {
+    return id === this.userId();
+  }
+
+  logout() {
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userName');
+    this.router.navigate(['/']);
   }
 
   scoreTone(score: number): string {
@@ -167,9 +203,10 @@ export class HomeDetailsComponent implements OnDestroy {
   }
 
   activityWhen(value: string): string {
-    const date = new Date(value);
+    if (!value) return '';
+    const date = value.length === 10 ? new Date(`${value}T00:00:00`) : new Date(value);
     if (Number.isNaN(date.getTime())) return '';
-    return date.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
   setMood(event: Event) { this.mood.set((event.target as HTMLSelectElement).value); }
@@ -178,6 +215,9 @@ export class HomeDetailsComponent implements OnDestroy {
   setActivityType(event: Event) { this.activityType.set((event.target as HTMLSelectElement).value); }
   setActivityDone(event: Event) { this.activityDone.set((event.target as HTMLSelectElement).value === 'done'); }
   setComment(event: Event) { this.activityComment.set((event.target as HTMLInputElement).value); }
+  setActivityDate(event: Event) { this.activityDate.set((event.target as HTMLInputElement).value); }
+  setHomeName(event: Event) { this.homeName.set((event.target as HTMLInputElement).value); }
+  todayDate(): string { return localDateInput(); }
 
   saveStatus() {
     const homeId = this.homeId();
@@ -216,16 +256,76 @@ export class HomeDetailsComponent implements OnDestroy {
       userId,
       type: this.activityType(),
       completed: this.activityDone(),
-      comment: this.activityComment().trim() || null
+      comment: this.activityComment().trim() || null,
+      occurredOn: this.activityDate()
     }).subscribe({
       next: () => {
         this.activityComment.set('');
+        this.activityDate.set(localDateInput());
         this.isLoggingActivity.set(false);
         this.dashboard.reload();
       },
       error: (error) => {
         this.actionError.set(error.error?.error || error.error?.message || 'Failed to log that activity.');
         this.isLoggingActivity.set(false);
+      }
+    });
+  }
+
+  saveHomeName() {
+    const homeId = this.homeId();
+    const userId = this.userId();
+    const newName = this.homeName().trim();
+    if (!homeId || !userId || newName.length < 2) return;
+
+    this.isSavingHome.set(true);
+    this.actionError.set('');
+    this.apiService.updateHome({ homeId, executorUserId: userId, newName }).subscribe({
+      next: () => {
+        this.homeName.set(newName);
+        this.knownHomeName = newName;
+        this.isSavingHome.set(false);
+        this.dashboard.reload();
+      },
+      error: (error) => {
+        this.actionError.set(error.error?.error || error.error?.message || 'Failed to rename the home.');
+        this.isSavingHome.set(false);
+      }
+    });
+  }
+
+  changeRole(targetUserId: string, event: Event) {
+    const homeId = this.homeId();
+    const userId = this.userId();
+    const role = (event.target as HTMLSelectElement).value;
+    if (!homeId || !userId) return;
+
+    this.actionError.set('');
+    this.apiService.updateMemberRole({
+      homeId,
+      executorUserId: userId,
+      targetUserId,
+      role
+    }).subscribe({
+      next: () => this.dashboard.reload(),
+      error: (error) => {
+        this.actionError.set(error.error?.error || error.error?.message || 'Failed to change that role.');
+        this.dashboard.reload();
+      }
+    });
+  }
+
+  removeMember(targetUserId: string, name: string) {
+    const homeId = this.homeId();
+    const userId = this.userId();
+    if (!homeId || !userId) return;
+    if (!confirm(`Remove ${name} from this home?`)) return;
+
+    this.actionError.set('');
+    this.apiService.removeMember({ homeId, executorUserId: userId, targetUserId }).subscribe({
+      next: () => this.dashboard.reload(),
+      error: (error) => {
+        this.actionError.set(error.error?.error || error.error?.message || 'Failed to remove that tenant.');
       }
     });
   }

@@ -25,6 +25,7 @@ namespace DomusVibes.Application.Activities.Commands.LogActivityEvent
                 throw new UnauthorizedAccessException("You are not a member of this home.");
 
             var comment = string.IsNullOrWhiteSpace(request.Comment) ? null : request.Comment.Trim();
+            var day = request.OccurredOn ?? HomePulseRecorder.Today();
             _db.ActivityEvents.Add(new ActivityEvent
             {
                 Id = Guid.NewGuid(),
@@ -33,11 +34,12 @@ namespace DomusVibes.Application.Activities.Commands.LogActivityEvent
                 Type = request.Type,
                 Completed = request.Completed,
                 Comment = comment,
+                OccurredOn = day,
                 CreatedAt = DateTimeOffset.UtcNow
             });
             await _db.SaveChangesAsync(cancellationToken);
 
-            var pulse = await HomePulseRecorder.RecalculateAsync(_db, request.HomeId, cancellationToken);
+            var pulse = await HomePulseRecorder.RecalculateAsync(_db, request.HomeId, day, cancellationToken);
             var outcome = request.Completed ? "done" : "missed";
 
             return new HomeChangedDto(
@@ -45,7 +47,7 @@ namespace DomusVibes.Application.Activities.Commands.LogActivityEvent
                 request.UserId,
                 member.User.Name,
                 "activity",
-                $"{member.User.Name} logged {Label(request.Type)} as {outcome}.",
+                $"{member.User.Name} logged {Label(request.Type)} as {outcome} on {day:d MMM}.",
                 pulse.LowMood ? "The house mood is low." : null,
                 pulse.Score);
         }

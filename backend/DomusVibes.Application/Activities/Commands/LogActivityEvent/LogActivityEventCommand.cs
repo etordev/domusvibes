@@ -8,6 +8,7 @@ namespace DomusVibes.Application.Activities.Commands.LogActivityEvent
         Guid UserId,
         string Type,
         bool Completed,
-        string? Comment
+        string? Comment,
+        DateOnly? OccurredOn
     ) : IRequest<HomeChangedDto>;
 }

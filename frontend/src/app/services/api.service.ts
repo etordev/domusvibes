@@ -110,6 +110,7 @@ export interface ActivityItem {
   type: string;
   completed: boolean;
   comment: string | null;
+  occurredOn: string;
   createdAt: string;
 }
 
@@ -194,7 +195,29 @@ export class ApiService {
     type: string;
     completed: boolean;
     comment: string | null;
+    occurredOn: string;
   }): Observable<HomeChanged> {
     return this.http.post<HomeChanged>(`${this.apiUrl}/activities`, request);
+  }
+
+  updateHome(request: { homeId: string; executorUserId: string; newName: string }): Observable<{ updated: boolean }> {
+    return this.http.put<{ updated: boolean }>(`${this.apiUrl}/homes/update`, request);
+  }
+
+  updateMemberRole(request: {
+    homeId: string;
+    executorUserId: string;
+    targetUserId: string;
+    role: string;
+  }): Observable<{ updated: boolean }> {
+    return this.http.put<{ updated: boolean }>(`${this.apiUrl}/homes/role`, request);
+  }
+
+  removeMember(request: {
+    homeId: string;
+    executorUserId: string;
+    targetUserId: string;
+  }): Observable<{ removed: boolean }> {
+    return this.http.delete<{ removed: boolean }>(`${this.apiUrl}/homes/remove`, { body: request });
   }
 }

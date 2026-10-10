@@ -9,26 +9,24 @@ namespace DomusVibes.Application.HomePulse
     {
         public static DateOnly Today() => DateOnly.FromDateTime(DateTime.UtcNow);
 
-        public static (DateTimeOffset Start, DateTimeOffset End) TodayRange()
-        {
-            var start = new DateTimeOffset(Today().ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
-            return (start, start.AddDays(1));
-        }
-
         public static async Task<Domain.Entities.HomePulse> RecalculateAsync(
             AppDbContext db,
             Guid homeId,
             CancellationToken cancellationToken)
-        {
-            var today = Today();
-            var (start, end) = TodayRange();
+            => await RecalculateAsync(db, homeId, Today(), cancellationToken);
 
+        public static async Task<Domain.Entities.HomePulse> RecalculateAsync(
+            AppDbContext db,
+            Guid homeId,
+            DateOnly day,
+            CancellationToken cancellationToken)
+        {
             var statuses = await db.DailyStatuses
-                .Where(s => s.HomeId == homeId && s.Date == today)
+                .Where(s => s.HomeId == homeId && s.Date == day)
                 .ToListAsync(cancellationToken);
 
             var activities = await db.ActivityEvents
-                .Where(a => a.HomeId == homeId && a.CreatedAt >= start && a.CreatedAt < end)
+                .Where(a => a.HomeId == homeId && a.OccurredOn == day)
                 .ToListAsync(cancellationToken);
 
             var result = HomePulseCalculator.Calculate(
@@ -39,7 +37,7 @@ namespace DomusVibes.Application.HomePulse
                 activities.Count(a => !string.IsNullOrWhiteSpace(a.Comment)));
 
             var snapshot = await db.HomePulses
-                .FirstOrDefaultAsync(p => p.HomeId == homeId && p.Day == today, cancellationToken);
+                .FirstOrDefaultAsync(p => p.HomeId == homeId && p.Day == day, cancellationToken);
 
             if (snapshot == null)
             {
@@ -47,7 +45,7 @@ namespace DomusVibes.Application.HomePulse
                 {
                     Id = Guid.NewGuid(),
                     HomeId = homeId,
-                    Day = today
+                    Day = day
                 };
                 db.HomePulses.Add(snapshot);
             }

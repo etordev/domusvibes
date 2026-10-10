@@ -24,6 +24,14 @@
 
 .navbar nav {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-name {
+  color: #6B7280;
+  font-weight: 500;
 }
 
 .brand {
@@ -136,7 +144,7 @@
 
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 1rem;
   margin-bottom: 1rem;
 
@@ -221,6 +229,7 @@
 .member-card {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 1rem;
   padding: 1rem;
   background: #F9FAFB;
@@ -249,6 +258,74 @@
       margin-bottom: 0.25rem;
     }
   }
+}
+
+.home-name-edit {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    color: #3D4852;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  input {
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 0.7rem 0.8rem;
+    font: inherit;
+    font-weight: 500;
+    color: #3D4852;
+    min-width: 220px;
+  }
+}
+
+.member-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    color: #6B7280;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  select {
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 0.45rem 0.6rem;
+    font: inherit;
+    color: #3D4852;
+    background: white;
+  }
+}
+
+.btn.btn-danger {
+  background: white;
+  color: #DC2626;
+  border: 2px solid #FECACA;
+  padding: 0.45rem 0.8rem;
+
+  &:hover {
+    background: #FEE2E2;
+  }
+}
+
+.you-label {
+  margin-left: 0.4rem;
+  color: #009A96;
+  font-size: 0.8rem;
+  font-weight: 700;
 }
 
 .role-badge {

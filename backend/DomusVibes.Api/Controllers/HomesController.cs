@@ -4,8 +4,12 @@ using DomusVibes.Application.Homes.Commands.JoinHome;
 using DomusVibes.Application.Homes.Commands.JoinHomeByInviteCode;
 using DomusVibes.Application.Homes.Commands.LeaveHome;
 using DomusVibes.Application.Homes.Commands.RemoveMember;
+using DomusVibes.Application.HomePulse;
 using DomusVibes.Application.Homes.Commands.UpdateHome;
+using DomusVibes.Application.Homes.Commands.UpdateMemberRole;
 using DomusVibes.Application.Homes.Queries.GetHomeDashboard;
+using DomusVibes.Api.Hubs;
+using Microsoft.AspNetCore.SignalR;
 using DomusVibes.Application.Homes.Queries.GetHomeDetails;
 using DomusVibes.Application.Homes.Queries.GetHomesByUserId;
 using MediatR;
@@ -18,10 +22,12 @@ namespace DomusVibes.Api.Controllers
     public class HomesController : ControllerBase
     {
         private readonly IMediator _mediator;
+        private readonly IHubContext<HomeHub> _hub;
 
-        public HomesController(IMediator mediator)
+        public HomesController(IMediator mediator, IHubContext<HomeHub> hub)
         {
             _mediator = mediator;
+            _hub = hub;
         }
 
         [HttpPost]
@@ -70,6 +76,7 @@ namespace DomusVibes.Api.Controllers
         public async Task<IActionResult> RemoveMember([FromBody] RemoveMemberCommand command)
         {
             var result = await _mediator.Send(command);
+            await Notify(command.HomeId, command.ExecutorUserId, "A tenant was removed from the home.");
             return Ok(new { removed = result });
         }
 
@@ -77,7 +84,28 @@ namespace DomusVibes.Api.Controllers
         public async Task<IActionResult> UpdateHome([FromBody] UpdateHomeCommand command)
         {
             var result = await _mediator.Send(command);
+            await Notify(command.HomeId, command.ExecutorUserId, "The home name was updated.");
             return Ok(new { updated = result });
+        }
+
+        [HttpPut("role")]
+        public async Task<IActionResult> UpdateMemberRole([FromBody] UpdateMemberRoleCommand command)
+        {
+            var result = await _mediator.Send(command);
+            await Notify(command.HomeId, command.ExecutorUserId, "A tenant's role was updated.");
+            return Ok(new { updated = result });
+        }
+
+        private Task Notify(Guid homeId, Guid actorUserId, string message)
+        {
+            return _hub.Clients.Group(homeId.ToString("D")).SendAsync("homeChanged", new HomeChangedDto(
+                homeId,
+                actorUserId,
+                "",
+                "settings",
+                message,
+                null,
+                0));
         }
 
         [HttpPost("invite/generate")]

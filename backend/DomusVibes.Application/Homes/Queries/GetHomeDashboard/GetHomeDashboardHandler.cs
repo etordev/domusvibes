@@ -28,7 +28,6 @@ namespace DomusVibes.Application.Homes.Queries.GetHomeDashboard
                 throw new KeyNotFoundException("Home not found.");
 
             var today = HomePulseRecorder.Today();
-            var (start, end) = HomePulseRecorder.TodayRange();
 
             var pulse = await _db.HomePulses
                 .FirstOrDefaultAsync(p => p.HomeId == request.HomeId && p.Day == today, cancellationToken);
@@ -41,7 +40,7 @@ namespace DomusVibes.Application.Homes.Queries.GetHomeDashboard
                 .ToListAsync(cancellationToken);
 
             var todayActivities = await _db.ActivityEvents
-                .Where(a => a.HomeId == request.HomeId && a.CreatedAt >= start && a.CreatedAt < end)
+                .Where(a => a.HomeId == request.HomeId && a.OccurredOn == today)
                 .ToListAsync(cancellationToken);
 
             var members = await _db.HomeMembers
@@ -92,7 +91,8 @@ namespace DomusVibes.Application.Homes.Queries.GetHomeDashboard
                 }).ToList(),
                 RecentActivities = await _db.ActivityEvents
                     .Where(a => a.HomeId == request.HomeId)
-                    .OrderByDescending(a => a.CreatedAt)
+                    .OrderByDescending(a => a.OccurredOn)
+                    .ThenByDescending(a => a.CreatedAt)
                     .Take(12)
                     .Join(_db.Users, a => a.UserId, u => u.Id, (a, u) => new ActivityItemDto
                     {
@@ -101,6 +101,7 @@ namespace DomusVibes.Application.Homes.Queries.GetHomeDashboard
                         Type = a.Type,
                         Completed = a.Completed,
                         Comment = a.Comment,
+                        OccurredOn = a.OccurredOn,
                         CreatedAt = a.CreatedAt
                     })
                     .ToListAsync(cancellationToken),
