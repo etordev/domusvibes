@@ -1,18 +1,21 @@
 import { afterNextRender, Component, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import { LanguageSelectComponent } from '../../components/language-select/language-select.component';
 import { ApiService } from '../../services/api.service';
 
 @Component({
   selector: 'app-join-home',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterModule],
+  imports: [ReactiveFormsModule, RouterModule, TranslateModule, LanguageSelectComponent],
   templateUrl: './join-home.component.html',
   styleUrls: ['./join-home.component.scss']
 })
 export class JoinHomeComponent {
   private readonly apiService = inject(ApiService);
   private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
   private readonly userId = signal('');
 
   readonly joinHomeForm: FormGroup;
@@ -48,13 +51,13 @@ export class JoinHomeComponent {
         inviteCode: formValue.inviteCode
       }).subscribe({
         next: () => {
-          this.successMessage.set('Successfully joined the home!');
+          this.successMessage.set(this.translate.instant('Join.Success'));
           setTimeout(() => {
             this.router.navigate(['/dashboard']);
           }, 1500);
         },
         error: (error) => {
-          this.errorMessage.set(error.error?.message || 'Failed to join home. Please check the invite code and try again.');
+          this.errorMessage.set(error.error?.message || this.translate.instant('Join.Failed'));
           this.isLoading.set(false);
         }
       });

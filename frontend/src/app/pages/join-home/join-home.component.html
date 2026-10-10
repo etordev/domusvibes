@@ -1,19 +1,20 @@
 <header class="navbar">
   <div class="navbar-content">
     <div class="brand">
-      <img src="assets/logo_domus_house.png" alt="DomusVibes logo" />
+      <img src="assets/logo_domus_house.png" [alt]="'Nav.LogoAlt' | translate" />
       <span>DomusVibes</span>
     </div>
     <nav>
-      <a routerLink="/dashboard" class="btn btn-outline"><span class="btn-label-full">← Back to Dashboard</span><span class="btn-label-short">← Dashboard</span></a>
+      <app-language-select />
+      <a routerLink="/dashboard" class="btn btn-outline"><span class="btn-label-full">{{ 'Nav.Back' | translate }}</span><span class="btn-label-short">{{ 'Nav.BackShort' | translate }}</span></a>
     </nav>
   </div>
 </header>
 
 <div class="page-container">
   <div class="form-card">
-    <h1>Join a Home</h1>
-    <p>Enter the invite code you received to join a shared living space</p>
+    <h1>{{ 'Join.Title' | translate }}</h1>
+    <p>{{ 'Join.Subtitle' | translate }}</p>
 
     @if (errorMessage()) {
       <div class="error-message">
@@ -29,26 +30,26 @@
 
     <form [formGroup]="joinHomeForm" (ngSubmit)="onSubmit()">
       <div class="form-group">
-        <label for="inviteCode">Invite Code</label>
+        <label for="inviteCode">{{ 'Join.Code' | translate }}</label>
         <input
           type="text"
           id="inviteCode"
           formControlName="inviteCode"
-          placeholder="Enter invite code"
+          [placeholder]="'Join.Placeholder' | translate"
           [class.error]="joinHomeForm.get('inviteCode')?.invalid && joinHomeForm.get('inviteCode')?.touched"
           />
         @if (joinHomeForm.get('inviteCode')?.invalid && joinHomeForm.get('inviteCode')?.touched) {
           <span class="error-text">
-            Please enter a valid invite code
+            {{ 'Join.Invalid' | translate }}
           </span>
         }
       </div>
 
       <div class="form-actions">
         <button type="submit" class="btn btn-primary" [disabled]="joinHomeForm.invalid || isLoading()">
-          {{ isLoading() ? 'Joining...' : 'Join Home' }}
+          {{ isLoading() ? ('Join.Joining' | translate) : ('Join.Submit' | translate) }}
         </button>
-        <a routerLink="/dashboard" class="btn btn-outline">Cancel</a>
+        <a routerLink="/dashboard" class="btn btn-outline">{{ 'Join.Cancel' | translate }}</a>
       </div>
     </form>
   </div>

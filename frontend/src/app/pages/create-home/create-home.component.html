@@ -1,19 +1,20 @@
 <header class="navbar">
   <div class="navbar-content">
     <div class="brand">
-      <img src="assets/logo_domus_house.png" alt="DomusVibes logo" />
+      <img src="assets/logo_domus_house.png" [alt]="'Nav.LogoAlt' | translate" />
       <span>DomusVibes</span>
     </div>
     <nav>
-      <a routerLink="/dashboard" class="btn btn-outline"><span class="btn-label-full">← Back to Dashboard</span><span class="btn-label-short">← Dashboard</span></a>
+      <app-language-select />
+      <a routerLink="/dashboard" class="btn btn-outline"><span class="btn-label-full">{{ 'Nav.Back' | translate }}</span><span class="btn-label-short">{{ 'Nav.BackShort' | translate }}</span></a>
     </nav>
   </div>
 </header>
 
 <div class="page-container">
   <div class="form-card">
-    <h1>Create New Home</h1>
-    <p>Give your shared living space a name</p>
+    <h1>{{ 'Create.Title' | translate }}</h1>
+    <p>{{ 'Create.Subtitle' | translate }}</p>
 
     @if (errorMessage()) {
       <div class="error-message">
@@ -29,26 +30,26 @@
 
     <form [formGroup]="createHomeForm" (ngSubmit)="onSubmit()">
       <div class="form-group">
-        <label for="name">Home Name</label>
+        <label for="name">{{ 'Create.Name' | translate }}</label>
         <input
           type="text"
           id="name"
           formControlName="name"
-          placeholder="e.g., My Family Home"
+          [placeholder]="'Create.Placeholder' | translate"
           [class.error]="createHomeForm.get('name')?.invalid && createHomeForm.get('name')?.touched"
           />
         @if (createHomeForm.get('name')?.invalid && createHomeForm.get('name')?.touched) {
           <span class="error-text">
-            Home name must be at least 2 characters
+            {{ 'Create.NameShort' | translate }}
           </span>
         }
       </div>
 
       <div class="form-actions">
         <button type="submit" class="btn btn-primary" [disabled]="createHomeForm.invalid || isLoading()">
-          {{ isLoading() ? 'Creating...' : 'Create Home' }}
+          {{ isLoading() ? ('Create.Creating' | translate) : ('Create.Submit' | translate) }}
         </button>
-        <a routerLink="/dashboard" class="btn btn-outline">Cancel</a>
+        <a routerLink="/dashboard" class="btn btn-outline">{{ 'Create.Cancel' | translate }}</a>
       </div>
     </form>
   </div>

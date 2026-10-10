@@ -2,23 +2,31 @@ import { ApplicationConfig, importProvidersFrom, provideBrowserGlobalErrorListen
 import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import { provideClientHydration, withNoIncrementalHydration } from '@angular/platform-browser';
-import { provideHttpClient, HttpClient } from '@angular/common/http';
+import { provideHttpClient } from '@angular/common/http';
 
 // 🌍 ngx-translate
 import { DialogModule } from '@angular/cdk/dialog';
-import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
-import { Observable } from 'rxjs';
+import { TranslateModule, TranslateLoader, TranslationObject } from '@ngx-translate/core';
+import { Observable, of } from 'rxjs';
+import en from '../assets/i18n/en.json';
+import es from '../assets/i18n/es.json';
+import de from '../assets/i18n/de.json';
+import it from '../assets/i18n/it.json';
+import pt from '../assets/i18n/pt.json';
+import fr from '../assets/i18n/fr.json';
+import da from '../assets/i18n/da.json';
+import nl from '../assets/i18n/nl.json';
+
+const dictionaries: Record<string, TranslationObject> = { en, es, de, it, pt, fr, da, nl };
 
 export class JsonTranslateLoader implements TranslateLoader {
-  constructor(private http: HttpClient) {}
-
-  getTranslation(lang: string): Observable<any> {
-    return this.http.get(`/assets/i18n/${lang}.json`);
+  getTranslation(lang: string): Observable<TranslationObject> {
+    return of(dictionaries[lang] ?? dictionaries['en']);
   }
 }
 
-export function HttpLoaderFactory(http: HttpClient) {
-  return new JsonTranslateLoader(http);
+export function HttpLoaderFactory() {
+  return new JsonTranslateLoader();
 }
 
 export const appConfig: ApplicationConfig = {
@@ -34,7 +42,7 @@ export const appConfig: ApplicationConfig = {
         loader: {
           provide: TranslateLoader,
           useFactory: HttpLoaderFactory,
-          deps: [HttpClient]
+          deps: []
         },
         useDefaultLang: true,
         defaultLanguage: 'en',

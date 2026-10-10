@@ -1,6 +1,6 @@
-<h2 id="logout-title">Log out</h2>
-<p>Are you sure you want to log out?</p>
+<h2 id="logout-title">{{ 'Logout.Title' | translate }}</h2>
+<p>{{ 'Logout.Body' | translate }}</p>
 <div class="actions">
-  <button type="button" class="cancel" (click)="stay()">Cancel</button>
-  <button type="button" class="confirm" (click)="leave()">Log out</button>
+  <button type="button" class="cancel" (click)="stay()">{{ 'Logout.Cancel' | translate }}</button>
+  <button type="button" class="confirm" (click)="leave()">{{ 'Logout.Confirm' | translate }}</button>
 </div>

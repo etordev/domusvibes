@@ -9,13 +9,14 @@
 /* === NAVBAR === */
 .navbar {
   width: 100%;
-  padding: 1rem 0;
-  background: rgba(255,255,255,0.6);
-  backdrop-filter: blur(8px);
+  padding: 0.7rem 0;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(10px);
   position: sticky;
   top: 0;
-  z-index: 10;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
+  z-index: 20;
+  border-bottom: 1px solid #E7F4F3;
+  box-shadow: 0 8px 24px rgba(61, 72, 82, 0.05);
 }
 
 .navbar-content {
@@ -67,11 +68,16 @@
 /* === BUTTONS === */
 .btn {
   text-decoration: none;
-  border-radius: 8px;
-  padding: 0.7rem 1.6rem;
+  border-radius: 12px;
+  padding: 0 1.05rem;
+  min-height: 40px;
+  box-sizing: border-box;
   font-weight: 600;
   transition: 0.25s ease all;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
 }
 
 .btn-outline {
@@ -182,7 +188,13 @@
     padding: 0 1.25rem;
   }
 
+  app-language-select {
+    order: 2;
+    width: 100%;
+  }
+
   .brand-centered {
+    order: 1;
     position: static;
     transform: none;
   }
@@ -198,6 +210,7 @@
   }
 
   .navbar nav {
+    order: 3;
     margin-left: 0;
     width: 100%;
     justify-content: stretch;

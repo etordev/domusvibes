@@ -3,9 +3,12 @@ import { httpResource } from '@angular/common/http';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { map } from 'rxjs';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import { LanguageSelectComponent } from '../../components/language-select/language-select.component';
 import { LogoutPrompt } from '../../components/logout-dialog/logout-prompt';
 import { ProfileNameComponent } from '../../components/profile-name/profile-name.component';
 import { ApiService, HomeChanged, HomeDashboard, PulsePoint } from '../../services/api.service';
+import { LanguageService } from '../../services/language.service';
 import { environment } from '../../../environments/environment';
 
 function resourceErrorMessage(error: unknown, fallback: string): string {
@@ -45,40 +48,40 @@ function monthBounds(monthValue: string): { start: string; end: string } {
   return { start, end: isoDate(new Date(Date.UTC(year, month, 0))) };
 }
 
-function weekLabel(start: string, end: string): string {
+function weekLabel(start: string, end: string, locale: string): string {
   const left = utcDate(start);
   const right = utcDate(end);
   const sameMonth = left.getUTCMonth() === right.getUTCMonth();
-  const startText = left.toLocaleDateString(undefined, {
+  const startText = left.toLocaleDateString(locale, {
     day: 'numeric',
     month: sameMonth ? undefined : 'short',
     timeZone: 'UTC'
   });
-  const endText = right.toLocaleDateString(undefined, { day: 'numeric', month: 'short', timeZone: 'UTC' });
+  const endText = right.toLocaleDateString(locale, { day: 'numeric', month: 'short', timeZone: 'UTC' });
   return `${startText} – ${endText}`;
 }
 
-function weeksInMonth(monthValue: string): { start: string; label: string }[] {
+function weeksInMonth(monthValue: string, locale: string): { start: string; label: string }[] {
   const { start, end } = monthBounds(monthValue);
   let cursor = startOfWeek(start);
   const last = startOfWeek(end);
   const weeks: { start: string; label: string }[] = [];
   while (cursor <= last) {
     const finish = addUtcDays(cursor, 6);
-    weeks.push({ start: cursor, label: weekLabel(cursor, finish) });
+    weeks.push({ start: cursor, label: weekLabel(cursor, finish, locale) });
     cursor = addUtcDays(cursor, 7);
   }
   return weeks;
 }
 
 function defaultWeek(monthValue: string, today = localDateInput()): string {
-  const weeks = weeksInMonth(monthValue);
+  const weeks = weeksInMonth(monthValue, 'en');
   return weeks.find(week => today >= week.start && today <= addUtcDays(week.start, 6))?.start ?? weeks[0].start;
 }
 
-function monthTitle(monthValue: string): string {
+function monthTitle(monthValue: string, locale: string): string {
   const [year, month] = monthValue.split('-').map(Number);
-  return utcDate(`${year}-${String(month).padStart(2, '0')}-01`).toLocaleDateString(undefined, {
+  return utcDate(`${year}-${String(month).padStart(2, '0')}-01`).toLocaleDateString(locale, {
     month: 'long',
     year: 'numeric',
     timeZone: 'UTC'
@@ -146,7 +149,7 @@ function readDashboard(raw: unknown): HomeDashboard {
 @Component({
   selector: 'app-home-details',
   standalone: true,
-  imports: [RouterModule, ProfileNameComponent],
+  imports: [RouterModule, ProfileNameComponent, TranslateModule, LanguageSelectComponent],
   templateUrl: './home-details.component.html',
   styleUrls: ['./home-details.component.scss']
 })
@@ -154,6 +157,8 @@ export class HomeDetailsComponent implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly apiService = inject(ApiService);
+  private readonly translate = inject(TranslateService);
+  private readonly language = inject(LanguageService);
   private readonly userId = signal<string | null>(null);
   private connection: { stop: () => Promise<void> } | null = null;
   private joinedHomeId = '';
@@ -174,9 +179,10 @@ export class HomeDetailsComponent implements OnDestroy {
     return `${environment.apiUrl}/homes/${id}/dashboard?userId=${userId}&month=${this.selectedMonth()}-01`;
   }, { parse: readDashboard });
   readonly actionError = signal('');
-  readonly detailsError = computed(() =>
-    this.actionError() || resourceErrorMessage(this.dashboard.error(), 'Failed to load this home.')
-  );
+  readonly detailsError = computed(() => {
+    this.language.current();
+    return this.actionError() || resourceErrorMessage(this.dashboard.error(), this.translate.instant('Home.LoadFailed'));
+  });
   readonly inviteCode = signal('');
   readonly isGeneratingInvite = signal(false);
   readonly isSavingStatus = signal(false);
@@ -195,10 +201,11 @@ export class HomeDetailsComponent implements OnDestroy {
   readonly latestMonth = currentMonthValue();
   readonly pulseRange = signal<'month' | 'week'>('month');
   readonly selectedWeek = signal(defaultWeek(currentMonthValue()));
-  readonly weeks = computed(() => weeksInMonth(this.selectedMonth()));
+  readonly weeks = computed(() => weeksInMonth(this.selectedMonth(), this.language.current()));
   readonly chartTitle = computed(() => {
-    if (this.pulseRange() === 'month') return monthTitle(this.selectedMonth());
-    return this.weeks().find(week => week.start === this.selectedWeek())?.label ?? 'Week';
+    const locale = this.language.current();
+    if (this.pulseRange() === 'month') return monthTitle(this.selectedMonth(), locale);
+    return this.weeks().find(week => week.start === this.selectedWeek())?.label ?? this.translate.instant('Home.Week');
   });
   readonly chartPoints = computed(() => {
     const history = this.dashboard.value()?.history ?? [];
@@ -254,8 +261,9 @@ export class HomeDetailsComponent implements OnDestroy {
       const canvas = this.chartCanvas()?.nativeElement;
       const points = this.chartPoints();
       const range = this.pulseRange();
+      const locale = this.language.current();
       if (!canvas || !points.length) return;
-      void this.drawChart(canvas, points, range);
+      void this.drawChart(canvas, points, range, locale);
     });
   }
 
@@ -281,21 +289,40 @@ export class HomeDetailsComponent implements OnDestroy {
   }
 
   activityLabel(type: string): string {
-    const labels: Record<string, string> = {
-      cleaning: 'Cleaning',
-      shopping: 'Shopping',
-      kitchen: 'Kitchen',
-      trash: 'Trash',
-      tidying: 'Tidying'
-    };
-    return labels[type] ?? type;
+    this.language.current();
+    const key = `Tasks.${type}`;
+    const label = this.translate.instant(key);
+    return label === key ? type : label;
+  }
+
+  loggedLine(activity: { userName: string; type: string; completed: boolean }): string {
+    this.language.current();
+    return this.translate.instant('Home.LoggedLine', {
+      name: activity.userName,
+      task: this.activityLabel(activity.type),
+      outcome: this.translate.instant(activity.completed ? 'Outcome.done' : 'Outcome.missed')
+    });
+  }
+
+  moodSummary(mood: string, energy: string): string {
+    this.language.current();
+    return this.translate.instant('Home.MoodSummary', {
+      mood: this.translate.instant(`Mood.${mood}`),
+      energy: this.translate.instant(`Energy.${energy}`)
+    });
+  }
+
+  phrase(message: string): string {
+    this.language.current();
+    if (message === 'The house mood is low.') return this.translate.instant('Home.LowMoodAlert');
+    return message;
   }
 
   activityWhen(value: string): string {
     if (!value) return '';
     const date = value.length === 10 ? new Date(`${value}T00:00:00`) : new Date(value);
     if (Number.isNaN(date.getTime())) return '';
-    return date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+    return date.toLocaleDateString(this.language.current(), { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
   setMood(event: Event) { this.mood.set((event.target as HTMLSelectElement).value); }
@@ -309,7 +336,7 @@ export class HomeDetailsComponent implements OnDestroy {
     const value = (event.target as HTMLInputElement).value;
     if (!/^\d{4}-\d{2}$/.test(value) || value > this.latestMonth) return;
     this.selectedMonth.set(value);
-    const weeks = weeksInMonth(value);
+    const weeks = weeksInMonth(value, this.language.current());
     if (!weeks.some(week => week.start === this.selectedWeek())) {
       this.selectedWeek.set(defaultWeek(value));
     }
@@ -341,7 +368,7 @@ export class HomeDetailsComponent implements OnDestroy {
         this.dashboard.reload();
       },
       error: (error) => {
-        this.actionError.set(error.error?.error || error.error?.message || 'Failed to save today\'s check-in.');
+        this.actionError.set(error.error?.error || error.error?.message || this.translate.instant('Home.CheckinFailed'));
         this.isSavingStatus.set(false);
       }
     });
@@ -369,7 +396,7 @@ export class HomeDetailsComponent implements OnDestroy {
         this.dashboard.reload();
       },
       error: (error) => {
-        this.actionError.set(error.error?.error || error.error?.message || 'Failed to log that activity.');
+        this.actionError.set(error.error?.error || error.error?.message || this.translate.instant('Home.LogFailed'));
         this.isLoggingActivity.set(false);
       }
     });
@@ -391,7 +418,7 @@ export class HomeDetailsComponent implements OnDestroy {
         this.dashboard.reload();
       },
       error: (error) => {
-        this.actionError.set(error.error?.error || error.error?.message || 'Failed to rename the home.');
+        this.actionError.set(error.error?.error || error.error?.message || this.translate.instant('Home.RenameFailed'));
         this.isSavingHome.set(false);
       }
     });
@@ -412,7 +439,7 @@ export class HomeDetailsComponent implements OnDestroy {
     }).subscribe({
       next: () => this.dashboard.reload(),
       error: (error) => {
-        this.actionError.set(error.error?.error || error.error?.message || 'Failed to change that role.');
+        this.actionError.set(error.error?.error || error.error?.message || this.translate.instant('Home.RoleFailed'));
         this.dashboard.reload();
       }
     });
@@ -422,13 +449,13 @@ export class HomeDetailsComponent implements OnDestroy {
     const homeId = this.homeId();
     const userId = this.userId();
     if (!homeId || !userId) return;
-    if (!confirm(`Remove ${name} from this home?`)) return;
+    if (!confirm(this.translate.instant('Home.RemoveConfirm', { name }))) return;
 
     this.actionError.set('');
     this.apiService.removeMember({ homeId, executorUserId: userId, targetUserId }).subscribe({
       next: () => this.dashboard.reload(),
       error: (error) => {
-        this.actionError.set(error.error?.error || error.error?.message || 'Failed to remove that tenant.');
+        this.actionError.set(error.error?.error || error.error?.message || this.translate.instant('Home.RemoveFailed'));
       }
     });
   }
@@ -449,7 +476,7 @@ export class HomeDetailsComponent implements OnDestroy {
         this.isGeneratingInvite.set(false);
       },
       error: (error) => {
-        this.actionError.set(error.error?.message || error.error?.error || 'Failed to generate invite code.');
+        this.actionError.set(error.error?.message || error.error?.error || this.translate.instant('Home.InviteFailed'));
         this.isGeneratingInvite.set(false);
       }
     });
@@ -459,7 +486,7 @@ export class HomeDetailsComponent implements OnDestroy {
     const code = this.inviteCode();
     if (code) {
       navigator.clipboard.writeText(code).then(() => {
-        alert('Invite code copied to clipboard!');
+        alert(this.translate.instant('Home.Copied'));
       });
     }
   }
@@ -508,8 +535,8 @@ export class HomeDetailsComponent implements OnDestroy {
     this.notices.set([{ id: crypto.randomUUID(), message, alert }, ...current].slice(0, 5));
   }
 
-  private async drawChart(canvas: HTMLCanvasElement, points: PulsePoint[], range: 'week' | 'month') {
-    const key = `${range}|` + points.map(point => `${point.day}:${point.score ?? ''}`).join('|');
+  private async drawChart(canvas: HTMLCanvasElement, points: PulsePoint[], range: 'week' | 'month', locale: string) {
+    const key = `${locale}|${range}|` + points.map(point => `${point.day}:${point.score ?? ''}`).join('|');
     if (canvas.dataset['weekKey'] === key) return;
     canvas.dataset['weekKey'] = key;
 
@@ -522,7 +549,7 @@ export class HomeDetailsComponent implements OnDestroy {
     new Chart(canvas, {
       type: 'line',
       data: {
-        labels: points.map(point => this.dayLabel(point.day, range)),
+        labels: points.map(point => this.dayLabel(point.day, range, locale)),
         datasets: [{
           label: 'HomePulse',
           data: points.map(point => point.score),
@@ -552,11 +579,11 @@ export class HomeDetailsComponent implements OnDestroy {
     });
   }
 
-  private dayLabel(day: string, range: 'week' | 'month'): string {
+  private dayLabel(day: string, range: 'week' | 'month', locale: string): string {
     const date = new Date(`${day}T00:00:00Z`);
     const options: Intl.DateTimeFormatOptions = range === 'month'
       ? { day: 'numeric', month: 'short', timeZone: 'UTC' }
       : { weekday: 'short', day: 'numeric', timeZone: 'UTC' };
-    return date.toLocaleDateString(undefined, options);
+    return date.toLocaleDateString(locale, options);
   }
 }

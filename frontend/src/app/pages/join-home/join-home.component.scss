@@ -2,14 +2,14 @@
 
 .navbar {
   width: 100%;
-  padding: 1rem 0;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(8px);
+  padding: 0.7rem 0;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(10px);
   position: sticky;
   top: 0;
-  z-index: 10;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  z-index: 20;
+  border-bottom: 1px solid #E7F4F3;
+  box-shadow: 0 8px 24px rgba(61, 72, 82, 0.05);
 }
 
 .navbar-content {
@@ -24,6 +24,20 @@
 
 .navbar nav {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 1.75rem;
+}
+
+.navbar .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 40px;
+  border-radius: 12px;
+  padding: 0 0.95rem;
+  background: white;
 }
 
 .brand {
@@ -202,6 +216,12 @@
 
   .navbar nav {
     margin-left: 0;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .navbar app-language-select {
+    width: 100%;
   }
 
   .navbar .btn {

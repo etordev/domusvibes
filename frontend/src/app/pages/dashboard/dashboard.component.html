@@ -1,26 +1,27 @@
 <header class="navbar">
   <div class="navbar-content">
     <div class="brand">
-      <img src="assets/logo_domus_house.png" alt="DomusVibes logo" />
+      <img src="assets/logo_domus_house.png" [alt]="'Nav.LogoAlt' | translate" />
       <span>DomusVibes</span>
     </div>
 
     <nav class="nav-actions">
+      <app-language-select />
       <app-profile-name />
-      <button class="btn btn-outline" (click)="logout()">Logout</button>
+      <button class="btn btn-outline" (click)="logout()">{{ 'Nav.Logout' | translate }}</button>
     </nav>
   </div>
 </header>
 
 <div class="dashboard-container">
   <div class="dashboard-header">
-    <h1>My Homes</h1>
-    <p>Manage your shared living spaces</p>
+    <h1>{{ 'Dashboard.Title' | translate }}</h1>
+    <p>{{ 'Dashboard.Subtitle' | translate }}</p>
   </div>
 
   <div class="actions-bar">
-    <a routerLink="/homes/create" class="btn btn-primary">+ Create New Home</a>
-    <a routerLink="/homes/join" class="btn btn-outline">Join with Invite Code</a>
+    <a routerLink="/homes/create" class="btn btn-primary">{{ 'Dashboard.Create' | translate }}</a>
+    <a routerLink="/homes/join" class="btn btn-outline">{{ 'Dashboard.Join' | translate }}</a>
   </div>
 
   @if (loadError()) {
@@ -31,7 +32,7 @@
 
   @if (waitingForSession() || homes.isLoading()) {
     <div class="loading">
-      <p>Loading your homes...</p>
+      <p>{{ 'Dashboard.Loading' | translate }}</p>
     </div>
   }
 
@@ -42,10 +43,10 @@
           <div class="home-icon">🏠</div>
           <h3>{{ home.name }}</h3>
           @if (home.score !== null) {
-            <div class="pulse-score">HomePulse {{ home.score }}</div>
+            <div class="pulse-score">{{ 'Dashboard.Pulse' | translate:{ score: home.score } }}</div>
           }
           <span class="role-badge" [class.owner]="home.role?.toLowerCase() === 'owner'">
-            {{ home.role || 'member' }}
+            {{ ('Roles.' + (home.role || 'member').toLowerCase()) | translate }}
           </span>
         </div>
       }
@@ -55,11 +56,11 @@
   @if (!waitingForSession() && !homes.isLoading() && !loadError() && homes.value().length === 0) {
     <div class="empty-state">
       <div class="empty-icon">🏡</div>
-      <h2>No homes yet</h2>
-      <p>Create your first home or join one with an invite code!</p>
+      <h2>{{ 'Dashboard.EmptyTitle' | translate }}</h2>
+      <p>{{ 'Dashboard.EmptyText' | translate }}</p>
       <div class="empty-actions">
-        <a routerLink="/homes/create" class="btn btn-primary">Create Home</a>
-        <a routerLink="/homes/join" class="btn btn-outline">Join Home</a>
+        <a routerLink="/homes/create" class="btn btn-primary">{{ 'Dashboard.CreateShort' | translate }}</a>
+        <a routerLink="/homes/join" class="btn btn-outline">{{ 'Dashboard.JoinShort' | translate }}</a>
       </div>
     </div>
   }

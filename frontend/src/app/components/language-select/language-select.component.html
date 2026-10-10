@@ -1,0 +1,30 @@
+<div class="language">
+  <button
+    type="button"
+    class="current"
+    (click)="toggle()"
+    [attr.aria-expanded]="open()"
+    [attr.aria-label]="'Language' | translate"
+  >
+    <span class="flag" aria-hidden="true">{{ selected().flag }}</span>
+    <span class="name">{{ selected().label }}</span>
+    <span class="chevron" aria-hidden="true"></span>
+  </button>
+  @if (open()) {
+    <ul class="menu" role="listbox" [attr.aria-label]="'Language' | translate">
+      @for (option of language.languages; track option.code) {
+        <li>
+          <button
+            type="button"
+            role="option"
+            [attr.aria-selected]="option.code === language.current()"
+            (click)="pick(option.code)"
+          >
+            <span class="flag" aria-hidden="true">{{ option.flag }}</span>
+            <span>{{ option.label }}</span>
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</div>

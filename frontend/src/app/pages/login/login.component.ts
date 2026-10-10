@@ -1,6 +1,8 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import { LanguageSelectComponent } from '../../components/language-select/language-select.component';
 import { ApiService, CreateUserRequest, LoginRequest } from '../../services/api.service';
 
 /** Password: min 6 chars, at least one upper, one lower, one digit, one special character */
@@ -12,28 +14,29 @@ function strongPasswordValidator(control: AbstractControl): { strongPassword: tr
 }
 
 /** Build a single error message from API error body (supports error, errors.*, message, title) */
-function getApiErrorMessage(err: { error?: { error?: string; message?: string; title?: string; errors?: Record<string, string[]> } }): string {
+function getApiErrorMessage(err: { error?: { error?: string; message?: string; title?: string; errors?: Record<string, string[]> } }, fallback: string, validation: string): string {
   const body = err?.error;
-  if (!body) return 'Something went wrong. Please try again.';
+  if (!body) return fallback;
   if (typeof body === 'string') return body;
   if (body.error) return body.error;
   if (body.message) return body.message;
   if (body.title) return body.title;
   if (body.errors && typeof body.errors === 'object') {
     const lines = Object.values(body.errors).flat().filter(Boolean);
-    return lines.length ? lines.join(' ') : 'Validation failed. Please check your input.';
+    return lines.length ? lines.join(' ') : validation;
   }
-  return 'Something went wrong. Please try again.';
+  return fallback;
 }
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterModule],
+  imports: [ReactiveFormsModule, RouterModule, TranslateModule, LanguageSelectComponent],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent {
+  private readonly translate = inject(TranslateService);
   loginForm: FormGroup;
   registerForm: FormGroup;
   readonly isLoginMode = signal(true);
@@ -81,7 +84,7 @@ export class LoginComponent {
           this.router.navigate(['/dashboard']);
         },
         error: (error) => {
-          this.errorMessage.set(getApiErrorMessage(error));
+          this.errorMessage.set(getApiErrorMessage(error, this.translate.instant('Login.GenericError'), this.translate.instant('Login.ValidationFailed')));
           this.isLoading.set(false);
         }
       });
@@ -108,7 +111,7 @@ export class LoginComponent {
           this.router.navigate(['/dashboard']);
         },
         error: (error) => {
-          this.errorMessage.set(getApiErrorMessage(error));
+          this.errorMessage.set(getApiErrorMessage(error, this.translate.instant('Login.GenericError'), this.translate.instant('Login.ValidationFailed')));
           this.isLoading.set(false);
         }
       });

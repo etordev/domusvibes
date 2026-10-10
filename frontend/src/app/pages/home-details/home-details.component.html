@@ -1,13 +1,14 @@
 <header class="navbar">
   <div class="navbar-content">
     <div class="brand">
-      <img src="assets/logo_domus_house.png" alt="DomusVibes logo" />
+      <img src="assets/logo_domus_house.png" [alt]="'Nav.LogoAlt' | translate" />
       <span>DomusVibes</span>
     </div>
     <nav>
+      <app-language-select />
       <app-profile-name (saved)="dashboard.reload()" />
-      <a routerLink="/dashboard" class="btn btn-outline"><span class="btn-label-full">← Back to Dashboard</span><span class="btn-label-short">← Dashboard</span></a>
-      <button class="btn btn-outline" type="button" (click)="logout()">Logout</button>
+      <a routerLink="/dashboard" class="btn btn-outline"><span class="btn-label-full">{{ 'Nav.Back' | translate }}</span><span class="btn-label-short">{{ 'Nav.BackShort' | translate }}</span></a>
+      <button class="btn btn-outline" type="button" (click)="logout()">{{ 'Nav.Logout' | translate }}</button>
     </nav>
   </div>
 </header>
@@ -21,7 +22,7 @@
 
   @if (dashboard.isLoading() && !dashboard.value()) {
     <div class="loading">
-      <p>Loading home details...</p>
+      <p>{{ 'Home.Loading' | translate }}</p>
     </div>
   }
 
@@ -32,11 +33,11 @@
         @if (isOwner()) {
           <div class="home-name-edit">
             <label>
-              Home name
+              {{ 'Home.HomeName' | translate }}
               <input [value]="homeName()" (input)="setHomeName($event)" maxlength="100" />
             </label>
             <button class="btn btn-primary" type="button" (click)="saveHomeName()" [disabled]="isSavingHome() || homeName().trim().length < 2">
-              {{ isSavingHome() ? 'Saving...' : 'Save name' }}
+              {{ isSavingHome() ? ('Home.Saving' | translate) : ('Home.SaveName' | translate) }}
             </button>
           </div>
         }
@@ -48,32 +49,30 @@
             <span>{{ details.score }}</span>
           </div>
           <div>
-            <div class="pulse-label">HomePulse today</div>
+            <div class="pulse-label">{{ 'Home.PulseToday' | translate }}</div>
             @if (details.averageMood === 'none') {
-              <p class="pulse-summary">No check-ins yet today.</p>
+              <p class="pulse-summary">{{ 'Home.NoCheckins' | translate }}</p>
             } @else {
-              <p class="pulse-summary">
-                House mood is {{ details.averageMood }}, energy is {{ details.averageEnergy }}.
-              </p>
+              <p class="pulse-summary">{{ moodSummary(details.averageMood, details.averageEnergy) }}</p>
             }
             <p class="pulse-summary">
-              {{ details.completedCount }} done, {{ details.missedCount }} missed, {{ details.positiveNotes }} notes.
+              {{ 'Home.Counts' | translate:{ done: details.completedCount, missed: details.missedCount, notes: details.positiveNotes } }}
             </p>
-            <p class="pulse-meaning">The number in the heart is today's house score, from 0 to 100.</p>
+            <p class="pulse-meaning">{{ 'Home.Meaning' | translate }}</p>
             <ul class="pulse-legend">
-              <li><span class="swatch good"></span>70–100 healthy</li>
-              <li><span class="swatch ok"></span>40–69 okay</li>
-              <li><span class="swatch low"></span>Under 40 low</li>
+              <li><span class="swatch good"></span>{{ 'Home.LegendHealthy' | translate }}</li>
+              <li><span class="swatch ok"></span>{{ 'Home.LegendOk' | translate }}</li>
+              <li><span class="swatch low"></span>{{ 'Home.LegendLow' | translate }}</li>
             </ul>
           </div>
         </div>
       </div>
 
       @if (details.alert) {
-        <div class="notice notice-alert">{{ details.alert }}</div>
+        <div class="notice notice-alert">{{ phrase(details.alert) }}</div>
       }
       @for (notice of notices(); track notice.id) {
-        <div class="notice" [class.notice-alert]="notice.alert">{{ notice.message }}</div>
+        <div class="notice" [class.notice-alert]="notice.alert">{{ phrase(notice.message) }}</div>
       }
 
       <div class="section">
@@ -81,16 +80,16 @@
           <h2>{{ chartTitle() }}</h2>
           <div class="chart-filters">
             <label>
-              Month
+              {{ 'Home.Month' | translate }}
               <input type="month" [value]="selectedMonth()" [max]="latestMonth" (change)="setMonth($event)" />
             </label>
-            <div class="range-switch" role="group" aria-label="Health period">
-              <button type="button" [class.active]="pulseRange() === 'month'" (click)="pulseRange.set('month')">Whole month</button>
-              <button type="button" [class.active]="pulseRange() === 'week'" (click)="pulseRange.set('week')">Week</button>
+            <div class="range-switch" role="group" [attr.aria-label]="'Home.HealthPeriod' | translate">
+              <button type="button" [class.active]="pulseRange() === 'month'" (click)="pulseRange.set('month')">{{ 'Home.WholeMonth' | translate }}</button>
+              <button type="button" [class.active]="pulseRange() === 'week'" (click)="pulseRange.set('week')">{{ 'Home.Week' | translate }}</button>
             </div>
             @if (pulseRange() === 'week') {
               <label>
-                Week
+                {{ 'Home.Week' | translate }}
                 <select (change)="setWeek($event)">
                 @for (week of weeks(); track week.start) {
                   <option [value]="week.start" [selected]="week.start === selectedWeek()">{{ week.label }}</option>
@@ -106,76 +105,76 @@
       </div>
 
       <div class="section">
-        <h2>Today's check-in</h2>
-        <p class="section-description">Mood, energy, and whether you are around today.</p>
+        <h2>{{ 'Home.CheckinTitle' | translate }}</h2>
+        <p class="section-description">{{ 'Home.CheckinHint' | translate }}</p>
         <div class="form-grid">
           <label>
-            Mood
+            {{ 'Home.Mood' | translate }}
             <select [value]="mood()" (change)="setMood($event)">
-              <option value="happy">Happy</option>
-              <option value="normal">Normal</option>
-              <option value="stressed">Stressed</option>
+              <option value="happy">{{ 'Mood.happy' | translate }}</option>
+              <option value="normal">{{ 'Mood.normal' | translate }}</option>
+              <option value="stressed">{{ 'Mood.stressed' | translate }}</option>
             </select>
           </label>
           <label>
-            Energy
+            {{ 'Home.Energy' | translate }}
             <select [value]="energy()" (change)="setEnergy($event)">
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
+              <option value="high">{{ 'Energy.high' | translate }}</option>
+              <option value="medium">{{ 'Energy.medium' | translate }}</option>
+              <option value="low">{{ 'Energy.low' | translate }}</option>
             </select>
           </label>
           <label>
-            Availability
+            {{ 'Home.Availability' | translate }}
             <select [value]="availability()" (change)="setAvailability($event)">
-              <option value="available">Available</option>
-              <option value="limited">Limited</option>
-              <option value="unavailable">Unavailable</option>
+              <option value="available">{{ 'Availability.available' | translate }}</option>
+              <option value="limited">{{ 'Availability.limited' | translate }}</option>
+              <option value="unavailable">{{ 'Availability.unavailable' | translate }}</option>
             </select>
           </label>
         </div>
         <button class="btn btn-primary" type="button" (click)="saveStatus()" [disabled]="isSavingStatus()">
-          {{ isSavingStatus() ? 'Saving...' : 'Save check-in' }}
+          {{ isSavingStatus() ? ('Home.Saving' | translate) : ('Home.SaveCheckin' | translate) }}
         </button>
       </div>
 
       <div class="section">
-        <h2>Log a household task</h2>
-        <p class="section-description">Record a chore as done or missed, and the day it happened. A short note counts as positive feedback.</p>
+        <h2>{{ 'Home.TaskTitle' | translate }}</h2>
+        <p class="section-description">{{ 'Home.TaskHint' | translate }}</p>
         <div class="form-grid">
           <label>
-            Task
+            {{ 'Home.Task' | translate }}
             <select [value]="activityType()" (change)="setActivityType($event)">
-              <option value="cleaning">Cleaning</option>
-              <option value="shopping">Shopping</option>
-              <option value="kitchen">Kitchen</option>
-              <option value="trash">Trash</option>
-              <option value="tidying">Tidying</option>
+              <option value="cleaning">{{ 'Tasks.cleaning' | translate }}</option>
+              <option value="shopping">{{ 'Tasks.shopping' | translate }}</option>
+              <option value="kitchen">{{ 'Tasks.kitchen' | translate }}</option>
+              <option value="trash">{{ 'Tasks.trash' | translate }}</option>
+              <option value="tidying">{{ 'Tasks.tidying' | translate }}</option>
             </select>
           </label>
           <label>
-            Outcome
+            {{ 'Home.Outcome' | translate }}
             <select [value]="activityDone() ? 'done' : 'missed'" (change)="setActivityDone($event)">
-              <option value="done">Done</option>
-              <option value="missed">Missed</option>
+              <option value="done">{{ 'Outcome.Done' | translate }}</option>
+              <option value="missed">{{ 'Outcome.Missed' | translate }}</option>
             </select>
           </label>
           <label>
-            Date
+            {{ 'Home.Date' | translate }}
             <input type="date" [value]="activityDate()" [max]="todayDate()" (change)="setActivityDate($event)" />
           </label>
           <label>
-            Note
-            <input [value]="activityComment()" (input)="setComment($event)" maxlength="200" placeholder="Optional" />
+            {{ 'Home.Note' | translate }}
+            <input [value]="activityComment()" (input)="setComment($event)" maxlength="200" [placeholder]="'Home.Optional' | translate" />
           </label>
         </div>
         <button class="btn btn-primary" type="button" (click)="logActivity()" [disabled]="isLoggingActivity()">
-          {{ isLoggingActivity() ? 'Saving...' : 'Log task' }}
+          {{ isLoggingActivity() ? ('Home.Saving' | translate) : ('Home.LogTask' | translate) }}
         </button>
       </div>
 
       <div class="section">
-        <h2>Members</h2>
+        <h2>{{ 'Home.Members' | translate }}</h2>
         @if (details.members.length > 0) {
           <div class="members-list">
             @for (member of details.members; track member.userId) {
@@ -185,32 +184,32 @@
                   <div class="member-name">
                     {{ member.name }}
                     @if (isCurrentUser(member.userId)) {
-                      <span class="you-label">You</span>
+                      <span class="you-label">{{ 'Home.You' | translate }}</span>
                     }
                   </div>
                   <span class="role-badge" [class.owner]="member.role === 'owner'">
-                    {{ member.role }}
+                    {{ ('Roles.' + member.role) | translate }}
                   </span>
                   <div class="member-status">
                     @if (member.mood) {
-                      {{ member.mood }} · {{ member.energy }} · {{ member.availability }}
+                      {{ ('Mood.' + member.mood) | translate }} · {{ ('Energy.' + member.energy) | translate }} · {{ ('Availability.' + member.availability) | translate }}
                     } @else {
-                      No check-in today
+                      {{ 'Home.NoCheckin' | translate }}
                     }
                   </div>
                 </div>
                 @if (isOwner() && !isCurrentUser(member.userId)) {
                   <div class="member-actions">
                     <label>
-                      Role
+                      {{ 'Home.Role' | translate }}
                       <select [value]="member.role" (change)="changeRole(member.userId, $event)">
-                        <option value="member">member</option>
-                        <option value="owner">owner</option>
+                        <option value="member">{{ 'Roles.member' | translate }}</option>
+                        <option value="owner">{{ 'Roles.owner' | translate }}</option>
                       </select>
                     </label>
                     @if (member.role !== 'owner') {
                       <button class="btn btn-danger" type="button" (click)="removeMember(member.userId, member.name)">
-                        Remove
+                        {{ 'Home.Remove' | translate }}
                       </button>
                     }
                   </div>
@@ -222,14 +221,13 @@
       </div>
 
       <div class="section">
-        <h2>Recent activity</h2>
+        <h2>{{ 'Home.ActivityTitle' | translate }}</h2>
         @if (details.recentActivities.length > 0) {
           <div class="activity-list">
             @for (activity of details.recentActivities; track activity.id) {
               <div class="activity-row">
                 <div>
-                  <strong>{{ activity.userName }}</strong>
-                  logged {{ activityLabel(activity.type) }} as {{ activity.completed ? 'done' : 'missed' }}
+                  {{ loggedLine(activity) }}
                   @if (activity.comment) {
                     <span class="activity-note">“{{ activity.comment }}”</span>
                   }
@@ -240,31 +238,31 @@
           </div>
         } @else {
           <div class="empty-members">
-            <p>No household tasks yet</p>
+            <p>{{ 'Home.NoTasks' | translate }}</p>
           </div>
         }
       </div>
 
       <div class="section">
-        <h2>Invite Code</h2>
-        <p class="section-description">Generate an invite code to share with others so they can join this home.</p>
+        <h2>{{ 'Home.InviteTitle' | translate }}</h2>
+        <p class="section-description">{{ 'Home.InviteHint' | translate }}</p>
         <div class="invite-section">
           <button
             class="btn btn-primary"
             type="button"
             (click)="generateInviteCode()"
             [disabled]="isGeneratingInvite()">
-            {{ isGeneratingInvite() ? 'Generating...' : 'Generate Invite Code' }}
+            {{ isGeneratingInvite() ? ('Home.Generating' | translate) : ('Home.Generate' | translate) }}
           </button>
           @if (inviteCode()) {
             <div class="invite-code-display">
               <div class="code-box">
                 <code>{{ inviteCode() }}</code>
-                <button class="btn-copy" type="button" (click)="copyInviteCode()" title="Copy to clipboard">
+                <button class="btn-copy" type="button" (click)="copyInviteCode()" [title]="'Home.Copy' | translate">
                   📋
                 </button>
               </div>
-              <p class="code-hint">Share this code with others to invite them to join</p>
+              <p class="code-hint">{{ 'Home.ShareHint' | translate }}</p>
             </div>
           }
         </div>

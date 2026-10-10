@@ -1,5 +1,13 @@
 @import '../../styles/variables';
 
+.navbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.7rem 1.25rem;
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid #E7F4F3;
+}
+
 .login-container {
   min-height: 100vh;
   display: flex;
@@ -161,6 +169,14 @@
 }
 
 @media (max-width: 768px) {
+  .navbar {
+    padding: 0.75rem 1rem 0;
+  }
+
+  .navbar app-language-select {
+    width: 100%;
+  }
+
   .login-container {
     padding: 1rem;
     align-items: flex-start;

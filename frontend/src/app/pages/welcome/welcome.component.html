@@ -1,35 +1,36 @@
 <header class="navbar">
   <div class="navbar-content">
+    <app-language-select />
     <div class="brand brand-centered">
       <img src="assets/logo_domus_house.png" alt="" />
       <span>DomusVibes</span>
     </div>
 
     <nav>
-      <a routerLink="/login" class="btn btn-outline">Login / Register</a>
+      <a routerLink="/login" class="btn btn-outline">{{ 'Nav.Login' | translate }}</a>
     </nav>
   </div>
 </header>
 
 <section class="hero">
   <div class="hero-content">
-    <h1>Your home, with better vibes ✨</h1>
+    <h1>{{ 'Welcome.Headline' | translate }}</h1>
 
     <p class="subtitle">
-      DomusVibes is the platform that brings home life to the next level.<br />
-      Create your digital Home, invite family or roommates and discover a new way of living together.
+      {{ 'Welcome.Subtitle1' | translate }}<br />
+      {{ 'Welcome.Subtitle2' | translate }}
     </p>
 
     <div class="features">
-      <p>🏠 <strong>Create and manage your homes</strong> in a simple and intuitive way.</p>
-      <p>👥 <strong>Invite people via invite code</strong> and build your home community.</p>
-      <p>📋 <strong>Keep track of what matters</strong>: members, activities, wellness (coming soon!).</p>
-      <p>💬 <strong>Communicate and share</strong> what makes your Home special.</p>
-      <p>✨ <strong>A digital environment that unites you</strong> and helps you live better, together.</p>
+      <p>🏠 <strong>{{ 'Welcome.Feature1Lead' | translate }}</strong> {{ 'Welcome.Feature1Rest' | translate }}</p>
+      <p>👥 <strong>{{ 'Welcome.Feature2Lead' | translate }}</strong> {{ 'Welcome.Feature2Rest' | translate }}</p>
+      <p>📋 <strong>{{ 'Welcome.Feature3Lead' | translate }}</strong>: {{ 'Welcome.Feature3Rest' | translate }}</p>
+      <p>💬 <strong>{{ 'Welcome.Feature4Lead' | translate }}</strong> {{ 'Welcome.Feature4Rest' | translate }}</p>
+      <p>✨ <strong>{{ 'Welcome.Feature5Lead' | translate }}</strong> {{ 'Welcome.Feature5Rest' | translate }}</p>
     </div>
 
     <a routerLink="/login" class="btn btn-primary btn-xl">
-      Get Started
+      {{ 'Welcome.GetStarted' | translate }}
     </a>
   </div>
 
