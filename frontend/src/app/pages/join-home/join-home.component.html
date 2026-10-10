@@ -15,13 +15,17 @@
     <h1>Join a Home</h1>
     <p>Enter the invite code you received to join a shared living space</p>
 
-    <div class="error-message" *ngIf="errorMessage">
-      {{ errorMessage }}
-    </div>
+    @if (errorMessage()) {
+      <div class="error-message">
+        {{ errorMessage() }}
+      </div>
+    }
 
-    <div class="success-message" *ngIf="successMessage">
-      {{ successMessage }}
-    </div>
+    @if (successMessage()) {
+      <div class="success-message">
+        {{ successMessage() }}
+      </div>
+    }
 
     <form [formGroup]="joinHomeForm" (ngSubmit)="onSubmit()">
       <div class="form-group">
@@ -32,15 +36,17 @@
           formControlName="inviteCode"
           placeholder="Enter invite code"
           [class.error]="joinHomeForm.get('inviteCode')?.invalid && joinHomeForm.get('inviteCode')?.touched"
-        />
-        <span class="error-text" *ngIf="joinHomeForm.get('inviteCode')?.invalid && joinHomeForm.get('inviteCode')?.touched">
-          Please enter a valid invite code
-        </span>
+          />
+        @if (joinHomeForm.get('inviteCode')?.invalid && joinHomeForm.get('inviteCode')?.touched) {
+          <span class="error-text">
+            Please enter a valid invite code
+          </span>
+        }
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="btn btn-primary" [disabled]="joinHomeForm.invalid || isLoading">
-          {{ isLoading ? 'Joining...' : 'Join Home' }}
+        <button type="submit" class="btn btn-primary" [disabled]="joinHomeForm.invalid || isLoading()">
+          {{ isLoading() ? 'Joining...' : 'Join Home' }}
         </button>
         <a routerLink="/dashboard" class="btn btn-outline">Cancel</a>
       </div>

@@ -6,7 +6,7 @@
     </div>
 
     <nav class="nav-actions">
-      <span class="user-name">Hello, {{ userName }}!</span>
+      <span class="user-name">Hello, {{ userName() }}!</span>
       <button class="btn btn-outline" (click)="logout()">Logout</button>
     </nav>
   </div>
@@ -23,31 +23,41 @@
     <a routerLink="/homes/join" class="btn btn-outline">Join with Invite Code</a>
   </div>
 
-  <div class="error-message" *ngIf="errorMessage">
-    {{ errorMessage }}
-  </div>
-
-  <div class="loading" *ngIf="isLoading">
-    <p>Loading your homes...</p>
-  </div>
-
-  <div class="homes-grid" *ngIf="!isLoading && homes.length > 0">
-    <div class="home-card" *ngFor="let home of homes" (click)="viewHomeDetails(home.id)">
-      <div class="home-icon">🏠</div>
-      <h3>{{ home.name }}</h3>
-      <span class="role-badge" [class.owner]="home.role?.toLowerCase() === 'owner'">
-        {{ home.role || 'member' }}
-      </span>
+  @if (loadError()) {
+    <div class="error-message">
+      {{ loadError() }}
     </div>
-  </div>
+  }
 
-  <div class="empty-state" *ngIf="!isLoading && homes.length === 0">
-    <div class="empty-icon">🏡</div>
-    <h2>No homes yet</h2>
-    <p>Create your first home or join one with an invite code!</p>
-    <div class="empty-actions">
-      <a routerLink="/homes/create" class="btn btn-primary">Create Home</a>
-      <a routerLink="/homes/join" class="btn btn-outline">Join Home</a>
+  @if (waitingForSession() || homes.isLoading()) {
+    <div class="loading">
+      <p>Loading your homes...</p>
     </div>
-  </div>
+  }
+
+  @if (!waitingForSession() && !homes.isLoading() && !loadError() && homes.value().length > 0) {
+    <div class="homes-grid">
+      @for (home of homes.value(); track home.id) {
+        <div class="home-card" (click)="viewHomeDetails(home.id)">
+          <div class="home-icon">🏠</div>
+          <h3>{{ home.name }}</h3>
+          <span class="role-badge" [class.owner]="home.role?.toLowerCase() === 'owner'">
+            {{ home.role || 'member' }}
+          </span>
+        </div>
+      }
+    </div>
+  }
+
+  @if (!waitingForSession() && !homes.isLoading() && !loadError() && homes.value().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">🏡</div>
+      <h2>No homes yet</h2>
+      <p>Create your first home or join one with an invite code!</p>
+      <div class="empty-actions">
+        <a routerLink="/homes/create" class="btn btn-primary">Create Home</a>
+        <a routerLink="/homes/join" class="btn btn-outline">Join Home</a>
+      </div>
+    </div>
+  }
 </div>

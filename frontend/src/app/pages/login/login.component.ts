@@ -1,5 +1,4 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { ApiService, CreateUserRequest, LoginRequest } from '../../services/api.service';
@@ -30,16 +29,16 @@ function getApiErrorMessage(err: { error?: { error?: string; message?: string; t
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [ReactiveFormsModule, RouterModule],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent {
   loginForm: FormGroup;
   registerForm: FormGroup;
-  isLoginMode = true;
-  errorMessage = '';
-  isLoading = false;
+  readonly isLoginMode = signal(true);
+  readonly errorMessage = signal('');
+  readonly isLoading = signal(false);
 
   constructor(
     private fb: FormBuilder,
@@ -59,14 +58,14 @@ export class LoginComponent {
   }
 
   toggleMode() {
-    this.isLoginMode = !this.isLoginMode;
-    this.errorMessage = '';
+    this.isLoginMode.update(mode => !mode);
+    this.errorMessage.set('');
   }
 
   onLogin() {
     if (this.loginForm.valid) {
-      this.isLoading = true;
-      this.errorMessage = '';
+      this.isLoading.set(true);
+      this.errorMessage.set('');
       const formValue = this.loginForm.value;
       const loginData: LoginRequest = {
         email: formValue.email,
@@ -75,15 +74,15 @@ export class LoginComponent {
 
       this.apiService.login(loginData).subscribe({
         next: (response) => {
-          this.isLoading = false;
+          this.isLoading.set(false);
           localStorage.setItem('userId', response.id);
           localStorage.setItem('userEmail', formValue.email);
           localStorage.setItem('userName', response.name);
           this.router.navigate(['/dashboard']);
         },
         error: (error) => {
-          this.errorMessage = getApiErrorMessage(error);
-          this.isLoading = false;
+          this.errorMessage.set(getApiErrorMessage(error));
+          this.isLoading.set(false);
         }
       });
     }
@@ -91,9 +90,9 @@ export class LoginComponent {
 
   onRegister() {
     if (this.registerForm.valid) {
-      this.isLoading = true;
-      this.errorMessage = '';
-      
+      this.isLoading.set(true);
+      this.errorMessage.set('');
+
       const formValue = this.registerForm.value;
       const userData: CreateUserRequest = {
         email: formValue.email,
@@ -103,15 +102,14 @@ export class LoginComponent {
 
       this.apiService.createUser(userData).subscribe({
         next: (response) => {
-          // Store user ID in localStorage
           localStorage.setItem('userId', response.id);
           localStorage.setItem('userEmail', formValue.email);
           localStorage.setItem('userName', formValue.name);
           this.router.navigate(['/dashboard']);
         },
         error: (error) => {
-          this.errorMessage = getApiErrorMessage(error);
-          this.isLoading = false;
+          this.errorMessage.set(getApiErrorMessage(error));
+          this.isLoading.set(false);
         }
       });
     }

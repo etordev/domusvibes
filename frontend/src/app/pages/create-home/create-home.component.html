@@ -15,13 +15,17 @@
     <h1>Create New Home</h1>
     <p>Give your shared living space a name</p>
 
-    <div class="error-message" *ngIf="errorMessage">
-      {{ errorMessage }}
-    </div>
+    @if (errorMessage()) {
+      <div class="error-message">
+        {{ errorMessage() }}
+      </div>
+    }
 
-    <div class="success-message" *ngIf="successMessage">
-      {{ successMessage }}
-    </div>
+    @if (successMessage()) {
+      <div class="success-message">
+        {{ successMessage() }}
+      </div>
+    }
 
     <form [formGroup]="createHomeForm" (ngSubmit)="onSubmit()">
       <div class="form-group">
@@ -32,15 +36,17 @@
           formControlName="name"
           placeholder="e.g., My Family Home"
           [class.error]="createHomeForm.get('name')?.invalid && createHomeForm.get('name')?.touched"
-        />
-        <span class="error-text" *ngIf="createHomeForm.get('name')?.invalid && createHomeForm.get('name')?.touched">
-          Home name must be at least 2 characters
-        </span>
+          />
+        @if (createHomeForm.get('name')?.invalid && createHomeForm.get('name')?.touched) {
+          <span class="error-text">
+            Home name must be at least 2 characters
+          </span>
+        }
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="btn btn-primary" [disabled]="createHomeForm.invalid || isLoading">
-          {{ isLoading ? 'Creating...' : 'Create Home' }}
+        <button type="submit" class="btn btn-primary" [disabled]="createHomeForm.invalid || isLoading()">
+          {{ isLoading() ? 'Creating...' : 'Create Home' }}
         </button>
         <a routerLink="/dashboard" class="btn btn-outline">Cancel</a>
       </div>

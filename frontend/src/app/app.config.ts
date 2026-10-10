@@ -1,8 +1,8 @@
 import { ApplicationConfig, importProvidersFrom, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
-import { provideClientHydration } from '@angular/platform-browser';
-import { provideHttpClient, withFetch, HttpClientModule, HttpClient } from '@angular/common/http';
+import { provideClientHydration, withNoIncrementalHydration } from '@angular/platform-browser';
+import { provideHttpClient, HttpClient } from '@angular/common/http';
 
 // 🌍 ngx-translate
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
@@ -24,11 +24,10 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
-    provideClientHydration(),
-    provideHttpClient(withFetch()),
+    provideClientHydration(withNoIncrementalHydration()),
+    provideHttpClient(),
 
     importProvidersFrom(
-      HttpClientModule,
       TranslateModule.forRoot({
         loader: {
           provide: TranslateLoader,

@@ -1,5 +1,4 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { afterNextRender, Component, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { ApiService } from '../../services/api.service';
@@ -7,56 +6,56 @@ import { ApiService } from '../../services/api.service';
 @Component({
   selector: 'app-join-home',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [ReactiveFormsModule, RouterModule],
   templateUrl: './join-home.component.html',
   styleUrls: ['./join-home.component.scss']
 })
-export class JoinHomeComponent implements OnInit {
-  joinHomeForm: FormGroup;
-  isLoading = false;
-  errorMessage = '';
-  successMessage = '';
-  userId = '';
+export class JoinHomeComponent {
+  private readonly apiService = inject(ApiService);
+  private readonly router = inject(Router);
+  private readonly userId = signal('');
 
-  constructor(
-    private fb: FormBuilder,
-    private apiService: ApiService,
-    private router: Router
-  ) {
-    this.joinHomeForm = this.fb.group({
+  readonly joinHomeForm: FormGroup;
+  readonly isLoading = signal(false);
+  readonly errorMessage = signal('');
+  readonly successMessage = signal('');
+
+  constructor() {
+    const fb = inject(FormBuilder);
+    this.joinHomeForm = fb.group({
       inviteCode: ['', [Validators.required, Validators.minLength(4)]]
     });
-  }
 
-  ngOnInit() {
-    const storedUserId = localStorage.getItem('userId');
-    if (!storedUserId) {
-      this.router.navigate(['/login']);
-      return;
-    }
-    this.userId = storedUserId;
+    afterNextRender(() => {
+      const storedUserId = localStorage.getItem('userId');
+      if (!storedUserId) {
+        this.router.navigate(['/login']);
+        return;
+      }
+      this.userId.set(storedUserId);
+    });
   }
 
   onSubmit() {
     if (this.joinHomeForm.valid) {
-      this.isLoading = true;
-      this.errorMessage = '';
-      this.successMessage = '';
+      this.isLoading.set(true);
+      this.errorMessage.set('');
+      this.successMessage.set('');
 
       const formValue = this.joinHomeForm.value;
       this.apiService.joinHomeByInvite({
-        userId: this.userId,
+        userId: this.userId(),
         inviteCode: formValue.inviteCode
       }).subscribe({
-        next: (response) => {
-          this.successMessage = 'Successfully joined the home!';
+        next: () => {
+          this.successMessage.set('Successfully joined the home!');
           setTimeout(() => {
             this.router.navigate(['/dashboard']);
           }, 1500);
         },
         error: (error) => {
-          this.errorMessage = error.error?.message || 'Failed to join home. Please check the invite code and try again.';
-          this.isLoading = false;
+          this.errorMessage.set(error.error?.message || 'Failed to join home. Please check the invite code and try again.');
+          this.isLoading.set(false);
         }
       });
     }

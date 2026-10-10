@@ -1,5 +1,4 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { afterNextRender, Component, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { ApiService } from '../../services/api.service';
@@ -7,56 +6,56 @@ import { ApiService } from '../../services/api.service';
 @Component({
   selector: 'app-create-home',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [ReactiveFormsModule, RouterModule],
   templateUrl: './create-home.component.html',
   styleUrls: ['./create-home.component.scss']
 })
-export class CreateHomeComponent implements OnInit {
-  createHomeForm: FormGroup;
-  isLoading = false;
-  errorMessage = '';
-  successMessage = '';
-  userId = '';
+export class CreateHomeComponent {
+  private readonly apiService = inject(ApiService);
+  private readonly router = inject(Router);
+  private readonly userId = signal('');
 
-  constructor(
-    private fb: FormBuilder,
-    private apiService: ApiService,
-    private router: Router
-  ) {
-    this.createHomeForm = this.fb.group({
+  readonly createHomeForm: FormGroup;
+  readonly isLoading = signal(false);
+  readonly errorMessage = signal('');
+  readonly successMessage = signal('');
+
+  constructor() {
+    const fb = inject(FormBuilder);
+    this.createHomeForm = fb.group({
       name: ['', [Validators.required, Validators.minLength(2)]]
     });
-  }
 
-  ngOnInit() {
-    const storedUserId = localStorage.getItem('userId');
-    if (!storedUserId) {
-      this.router.navigate(['/login']);
-      return;
-    }
-    this.userId = storedUserId;
+    afterNextRender(() => {
+      const storedUserId = localStorage.getItem('userId');
+      if (!storedUserId) {
+        this.router.navigate(['/login']);
+        return;
+      }
+      this.userId.set(storedUserId);
+    });
   }
 
   onSubmit() {
     if (this.createHomeForm.valid) {
-      this.isLoading = true;
-      this.errorMessage = '';
-      this.successMessage = '';
+      this.isLoading.set(true);
+      this.errorMessage.set('');
+      this.successMessage.set('');
 
       const formValue = this.createHomeForm.value;
       this.apiService.createHome({
         name: formValue.name,
-        ownerUserId: this.userId
+        ownerUserId: this.userId()
       }).subscribe({
-        next: (response) => {
-          this.successMessage = 'Home created successfully!';
+        next: () => {
+          this.successMessage.set('Home created successfully!');
           setTimeout(() => {
             this.router.navigate(['/dashboard']);
           }, 1500);
         },
         error: (error) => {
-          this.errorMessage = error.error?.message || 'Failed to create home. Please try again.';
-          this.isLoading = false;
+          this.errorMessage.set(error.error?.message || 'Failed to create home. Please try again.');
+          this.isLoading.set(false);
         }
       });
     }
