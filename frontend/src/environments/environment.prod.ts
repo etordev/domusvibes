@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://localhost:5200/api',
-  hubUrl: 'http://localhost:5200/hubs/home'
+  apiUrl: 'https://domusvibes.onrender.com/api',
+  hubUrl: 'https://domusvibes.onrender.com/hubs/home'
 };

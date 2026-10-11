@@ -69,9 +69,16 @@ builder.Services.AddSingleton<JwtTokenService>();
 // CORS - Allow frontend to communicate with backend
 builder.Services.AddCors(options =>
 {
+    var origins = new List<string> { "http://localhost:4200" };
+    var extraOrigins = builder.Configuration["Cors:Origins"];
+    if (!string.IsNullOrWhiteSpace(extraOrigins))
+    {
+        origins.AddRange(extraOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+    }
+
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:4200")
+        policy.WithOrigins(origins.ToArray())
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
