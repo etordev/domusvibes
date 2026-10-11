@@ -13,6 +13,7 @@ import { HOUSEHOLD_TASKS, TASK_GROUPS, householdTask } from '../../services/hous
 import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
 import { ChoiceFieldComponent, ChoiceOption } from '../../components/choice-field/choice-field.component';
 import { DateFieldComponent } from '../../components/date-field/date-field.component';
+import { DomyComponent } from '../../components/domy/domy.component';
 import { LanguageService } from '../../services/language.service';
 import { environment } from '../../../environments/environment';
 import { noticeText } from '../../services/notice-text';
@@ -191,7 +192,7 @@ function readDashboard(raw: unknown): HomeDashboard {
 @Component({
   selector: 'app-home-details',
   standalone: true,
-  imports: [RouterModule, ProfileNameComponent, TranslateModule, LanguageSelectComponent, DateFieldComponent, ChoiceFieldComponent],
+  imports: [RouterModule, ProfileNameComponent, TranslateModule, LanguageSelectComponent, DateFieldComponent, ChoiceFieldComponent, DomyComponent],
   templateUrl: './home-details.component.html',
   styleUrls: ['./home-details.component.scss']
 })

@@ -249,5 +249,25 @@
     "Cancel": "Annuleren",
     "Confirm": "Uitloggen",
     "Aria": "Uitloggen"
+  },
+  "Domy": {
+    "Open": "Vraag Domy",
+    "Close": "Sluiten",
+    "Placeholder": "Vraag over dit huis",
+    "Send": "Stuur",
+    "Hello": "Hoi, ik ben Domy. Ik ken alleen dit huis.",
+    "AskPulse": "Hoe is het huis vandaag?",
+    "AskTurn": "Wie is er nu aan de beurt?",
+    "AskFair": "Wat zal ik doen?",
+    "AskShare": "Wie deed er minder?",
+    "Pulse": "De score van vandaag is {{score}} van 100. {{summary}}",
+    "PulseNone": "De score van vandaag is {{score}} van 100. Nog niemand heeft ingecheckt.",
+    "NoTurns": "Er zijn nog geen taken die terugkomen. Je kunt er een maken bij Beurten.",
+    "NoSuggestion": "Ik heb nog geen voorstel.",
+    "ShareIntro": "In de laatste 2 weken zien de punten van het huis er zo uit:",
+    "Least": "{{name}} heeft het kleinste aandeel, {{percent}}%.",
+    "Unknown": "Ik kan zeggen hoe het huis vandaag is, wie aan de beurt is, wat je kunt doen en wie minder deed.",
+    "Hide": "Verberg",
+    "Show": "Toon Domy"
   }
 }

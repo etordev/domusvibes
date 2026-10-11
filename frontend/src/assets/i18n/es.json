@@ -249,5 +249,25 @@
     "Cancel": "Cancelar",
     "Confirm": "Cerrar sesión",
     "Aria": "Cerrar sesión"
+  },
+  "Domy": {
+    "Open": "Pregunta a Domy",
+    "Close": "Cerrar",
+    "Placeholder": "Pregunta por esta casa",
+    "Send": "Enviar",
+    "Hello": "Hola, soy Domy. Solo conozco esta casa.",
+    "AskPulse": "¿Cómo está la casa hoy?",
+    "AskTurn": "¿A quién le toca ahora?",
+    "AskFair": "¿Qué debería hacer?",
+    "AskShare": "¿Quién hizo menos?",
+    "Pulse": "La puntuación de hoy es {{score}} de 100. {{summary}}",
+    "PulseNone": "La puntuación de hoy es {{score}} de 100. Nadie ha hecho el registro de hoy.",
+    "NoTurns": "Todavía no hay tareas que se repiten. Puedes crear una en Turnos.",
+    "NoSuggestion": "Todavía no tengo una sugerencia.",
+    "ShareIntro": "En las últimas 2 semanas los puntos de la casa están así:",
+    "Least": "{{name}} tiene la parte más pequeña, {{percent}}%.",
+    "Unknown": "Puedo decirte cómo está la casa hoy, a quién le toca, qué podrías hacer y quién hizo menos.",
+    "Hide": "Ocultar",
+    "Show": "Mostrar Domy"
   }
 }

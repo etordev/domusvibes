@@ -249,5 +249,25 @@
     "Cancel": "Cancel",
     "Confirm": "Log out",
     "Aria": "Log out"
+  },
+  "Domy": {
+    "Open": "Ask Domy",
+    "Close": "Close",
+    "Placeholder": "Ask about this home",
+    "Send": "Send",
+    "Hello": "Hi, I'm Domy. I only know this home.",
+    "AskPulse": "How is the house today?",
+    "AskTurn": "Whose turn is next?",
+    "AskFair": "What should I do?",
+    "AskShare": "Who did less lately?",
+    "Pulse": "Today's house score is {{score}} out of 100. {{summary}}",
+    "PulseNone": "Today's house score is {{score}} out of 100. Nobody has checked in yet.",
+    "NoTurns": "There are no repeating tasks yet. You can set one under Turns.",
+    "NoSuggestion": "I don't have a suggestion yet.",
+    "ShareIntro": "Over the last 2 weeks the household points look like this:",
+    "Least": "{{name}} has the smallest share, {{percent}}%.",
+    "Unknown": "I can tell you how the house feels today, whose turn is next, what you could do, and who did less lately.",
+    "Hide": "Hide",
+    "Show": "Show Domy"
   }
 }

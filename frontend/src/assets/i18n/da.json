@@ -249,5 +249,25 @@
     "Cancel": "Annuller",
     "Confirm": "Log ud",
     "Aria": "Log ud"
+  },
+  "Domy": {
+    "Open": "Spørg Domy",
+    "Close": "Luk",
+    "Placeholder": "Spørg om dette hjem",
+    "Send": "Send",
+    "Hello": "Hej, jeg er Domy. Jeg kender kun dette hjem.",
+    "AskPulse": "Hvordan har huset det i dag?",
+    "AskTurn": "Hvis tur er den næste?",
+    "AskFair": "Hvad skal jeg gøre?",
+    "AskShare": "Hvem har lavet mindst?",
+    "Pulse": "Dagens tal er {{score}} ud af 100. {{summary}}",
+    "PulseNone": "Dagens tal er {{score}} ud af 100. Ingen har tjekket ind endnu.",
+    "NoTurns": "Der er ingen opgaver der gentages endnu. Du kan oprette en under Ture.",
+    "NoSuggestion": "Jeg har ikke et forslag endnu.",
+    "ShareIntro": "De sidste 2 uger ser husets point sådan ud:",
+    "Least": "{{name}} har den mindste andel, {{percent}}%.",
+    "Unknown": "Jeg kan sige hvordan huset har det i dag, hvis tur det er, hvad du kan gøre, og hvem der har lavet mindst.",
+    "Hide": "Skjul",
+    "Show": "Vis Domy"
   }
 }

@@ -1,0 +1,78 @@
+<ng-template #figure let-large="large">
+  <svg class="domy-figure" [class.large]="large" viewBox="0 0 100 120" aria-hidden="true">
+    <ellipse class="shadow" cx="50" cy="114" rx="18" ry="4" />
+    <g class="bob">
+      <g class="leg leg-left">
+        <path d="M38 90 Q34 100 36 108" />
+        <ellipse cx="34" cy="110" rx="8" ry="4.2" />
+      </g>
+      <g class="leg leg-right">
+        <path d="M62 90 Q66 100 64 108" />
+        <ellipse cx="68" cy="110" rx="8" ry="4.2" />
+      </g>
+      <g class="arm arm-rest">
+        <path d="M28 60 Q16 70 18 82" />
+        <circle cx="18" cy="84" r="5" />
+      </g>
+      <rect class="chimney" x="30" y="18" width="10" height="16" rx="2" />
+      <path class="roof" d="M16 50 L50 16 L84 50 Z" />
+      <rect class="walls" x="22" y="46" width="56" height="46" rx="12" />
+      <path class="heart" d="M50 72c0-3.4-4.6-5.6-7-2.6-2.4 3-1.2 6.6 7 11 8.2-4.4 9.4-8 7-11-2.4-3-7-.8-7 2.6z" />
+      <path class="pulse" d="M42 78 H47 L49 74 L52 82 L54 78 H60" />
+      <g class="eye">
+        <circle cx="40" cy="60" r="5.2" />
+        <circle class="pupil" cx="41.2" cy="61" r="2.15" />
+        <ellipse class="lid" cx="40" cy="60" rx="5.6" ry="5.4" />
+      </g>
+      <g class="eye">
+        <circle cx="60" cy="60" r="5.2" />
+        <circle class="pupil" cx="61.2" cy="61" r="2.15" />
+        <ellipse class="lid" cx="60" cy="60" rx="5.6" ry="5.4" />
+      </g>
+      <path class="smile" d="M45 80 Q50 84 55 80" />
+      <g class="arm arm-wave">
+        <path d="M74 56 Q90 46 92 32" />
+        <circle cx="92" cy="30" r="5.2" />
+      </g>
+    </g>
+  </svg>
+</ng-template>
+
+@if (hidden()) {
+  <button class="domy-show" type="button" (click)="show()">{{ 'Domy.Show' | translate }}</button>
+} @else {
+<button class="domy-button" type="button" (click)="toggle()" [attr.aria-expanded]="open()" [attr.aria-label]="'Domy.Open' | translate">
+  <ng-container [ngTemplateOutlet]="figure" />
+</button>
+
+@if (open()) {
+  <section class="domy-panel" role="dialog" [attr.aria-label]="'Domy.Open' | translate">
+    <header>
+      <strong>Domy</strong>
+      <button class="hide" type="button" (click)="hide()">{{ 'Domy.Hide' | translate }}</button>
+      <button type="button" (click)="toggle()" [attr.aria-label]="'Domy.Close' | translate">×</button>
+    </header>
+    <div class="domy-greet">
+      <ng-container [ngTemplateOutlet]="figure" [ngTemplateOutletContext]="{ large: true }" />
+      @if (messages()[0]; as hello) {
+        <p>{{ hello.text }}</p>
+      }
+    </div>
+    @if (messages().length > 1) {
+      <div class="domy-log" #log>
+        @for (message of messages(); track $index) {
+          @if ($index > 0) {
+            <p [class.you]="message.from === 'you'">{{ message.text }}</p>
+          }
+        }
+      </div>
+    }
+    <div class="domy-prompts">
+      <button type="button" (click)="ask('pulse')">{{ 'Domy.AskPulse' | translate }}</button>
+      <button type="button" (click)="ask('turn')">{{ 'Domy.AskTurn' | translate }}</button>
+      <button type="button" (click)="ask('fair')">{{ 'Domy.AskFair' | translate }}</button>
+      <button type="button" (click)="ask('share')">{{ 'Domy.AskShare' | translate }}</button>
+    </div>
+  </section>
+}
+}

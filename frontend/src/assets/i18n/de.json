@@ -249,5 +249,25 @@
     "Cancel": "Abbrechen",
     "Confirm": "Abmelden",
     "Aria": "Abmelden"
+  },
+  "Domy": {
+    "Open": "Domy fragen",
+    "Close": "Schließen",
+    "Placeholder": "Frag nach diesem Zuhause",
+    "Send": "Senden",
+    "Hello": "Hallo, ich bin Domy. Ich kenne nur dieses Zuhause.",
+    "AskPulse": "Wie geht es dem Haus heute?",
+    "AskTurn": "Wer ist als Nächstes dran?",
+    "AskFair": "Was soll ich tun?",
+    "AskShare": "Wer hat zuletzt weniger gemacht?",
+    "Pulse": "Der Wert von heute ist {{score}} von 100. {{summary}}",
+    "PulseNone": "Der Wert von heute ist {{score}} von 100. Noch hat sich niemand eingetragen.",
+    "NoTurns": "Es gibt noch keine wiederkehrenden Aufgaben. Du kannst eine unter Turnus anlegen.",
+    "NoSuggestion": "Ich habe noch keinen Vorschlag.",
+    "ShareIntro": "In den letzten 2 Wochen sehen die Hauspunkte so aus:",
+    "Least": "{{name}} hat den kleinsten Anteil, {{percent}}%.",
+    "Unknown": "Ich kann sagen, wie es dem Haus heute geht, wer dran ist, was du tun könntest und wer weniger gemacht hat.",
+    "Hide": "Ausblenden",
+    "Show": "Domy zeigen"
   }
 }

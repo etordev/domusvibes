@@ -249,5 +249,25 @@
     "Cancel": "Annulla",
     "Confirm": "Esci",
     "Aria": "Esci"
+  },
+  "Domy": {
+    "Open": "Chiedi a Domy",
+    "Close": "Chiudi",
+    "Placeholder": "Chiedi di questa casa",
+    "Send": "Invia",
+    "Hello": "Ciao, sono Domy. Conosco solo questa casa.",
+    "AskPulse": "Come sta la casa oggi?",
+    "AskTurn": "Di chi è il prossimo turno?",
+    "AskFair": "Cosa dovrei fare?",
+    "AskShare": "Chi ha fatto di meno?",
+    "Pulse": "Il punteggio di oggi è {{score}} su 100. {{summary}}",
+    "PulseNone": "Il punteggio di oggi è {{score}} su 100. Nessuno ha fatto il check-in.",
+    "NoTurns": "Non ci sono ancora compiti che si ripetono. Puoi aggiungerne uno in Turni.",
+    "NoSuggestion": "Non ho ancora un suggerimento.",
+    "ShareIntro": "Nelle ultime 2 settimane i punti di casa sono così:",
+    "Least": "{{name}} ha la quota più piccola, {{percent}}%.",
+    "Unknown": "Posso dirti come sta la casa oggi, di chi è il turno, cosa potresti fare e chi ha fatto di meno.",
+    "Hide": "Nascondi",
+    "Show": "Mostra Domy"
   }
 }

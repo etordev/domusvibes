@@ -249,5 +249,25 @@
     "Cancel": "Annuler",
     "Confirm": "Se déconnecter",
     "Aria": "Se déconnecter"
+  },
+  "Domy": {
+    "Open": "Demander à Domy",
+    "Close": "Fermer",
+    "Placeholder": "Demande à propos de cette maison",
+    "Send": "Envoyer",
+    "Hello": "Bonjour, je suis Domy. Je ne connais que cette maison.",
+    "AskPulse": "Comment va la maison aujourd'hui ?",
+    "AskTurn": "À qui le prochain tour ?",
+    "AskFair": "Que devrais-je faire ?",
+    "AskShare": "Qui en a fait le moins ?",
+    "Pulse": "Le score d'aujourd'hui est {{score}} sur 100. {{summary}}",
+    "PulseNone": "Le score d'aujourd'hui est {{score}} sur 100. Personne ne s'est encore signalé.",
+    "NoTurns": "Il n'y a pas encore de tâches qui se répètent. Tu peux en ajouter dans Tours.",
+    "NoSuggestion": "Je n'ai pas encore de suggestion.",
+    "ShareIntro": "Sur les 2 dernières semaines, les points de la maison sont :",
+    "Least": "{{name}} a la plus petite part, {{percent}} %.",
+    "Unknown": "Je peux dire comment va la maison, à qui est le tour, ce que tu pourrais faire et qui en a fait le moins.",
+    "Hide": "Masquer",
+    "Show": "Afficher Domy"
   }
 }
