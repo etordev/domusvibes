@@ -40,6 +40,7 @@ namespace DomusVibes.Application.Homes.Queries.GetHomeDashboard
     public class ActivityItemDto
     {
         public Guid Id { get; set; }
+        public Guid UserId { get; set; }
         public string UserName { get; set; } = default!;
         public string Type { get; set; } = default!;
         public bool Completed { get; set; }

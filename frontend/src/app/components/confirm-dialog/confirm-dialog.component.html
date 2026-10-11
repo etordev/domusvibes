@@ -1,0 +1,6 @@
+<h2>{{ data.titleKey | translate }}</h2>
+<p>{{ data.bodyKey | translate }}</p>
+<div class="actions">
+  <button type="button" class="cancel" (click)="stay()">{{ data.cancelKey | translate }}</button>
+  <button type="button" class="confirm" (click)="proceed()">{{ data.confirmKey | translate }}</button>
+</div>

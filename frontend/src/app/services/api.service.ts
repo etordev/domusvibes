@@ -10,18 +10,15 @@ export interface CreateUserRequest {
   password: string;
 }
 
-export interface CreateUserResponse {
-  id: string;
-}
-
 export interface LoginRequest {
   email: string;
   password: string;
 }
 
-export interface LoginResponse {
+export interface AuthSession {
   id: string;
   name: string;
+  token: string;
 }
 
 export interface CreateHomeRequest {
@@ -106,6 +103,7 @@ export interface MemberStatus {
 
 export interface ActivityItem {
   id: string;
+  userId: string;
   userName: string;
   type: string;
   completed: boolean;
@@ -146,12 +144,12 @@ export class ApiService {
   private apiUrl = environment.apiUrl;
 
   // Users
-  createUser(request: CreateUserRequest): Observable<CreateUserResponse> {
-    return this.http.post<CreateUserResponse>(`${this.apiUrl}/users`, request);
+  createUser(request: CreateUserRequest): Observable<AuthSession> {
+    return this.http.post<AuthSession>(`${this.apiUrl}/users`, request);
   }
 
-  login(request: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/users/login`, request);
+  login(request: LoginRequest): Observable<AuthSession> {
+    return this.http.post<AuthSession>(`${this.apiUrl}/users/login`, request);
   }
 
   // Homes
@@ -159,8 +157,8 @@ export class ApiService {
     return this.http.post<CreateHomeResponse>(`${this.apiUrl}/homes`, request);
   }
 
-  getHomesByUserId(userId: string): Observable<HomeListItem[]> {
-    return this.http.get<HomeListItem[]>(`${this.apiUrl}/homes/user/${userId}`);
+  getHomesByUserId(): Observable<HomeListItem[]> {
+    return this.http.get<HomeListItem[]>(`${this.apiUrl}/homes/mine`);
   }
 
   getHomeDetails(homeId: string): Observable<HomeDetails> {
@@ -198,6 +196,22 @@ export class ApiService {
     occurredOn: string;
   }): Observable<HomeChanged> {
     return this.http.post<HomeChanged>(`${this.apiUrl}/activities`, request);
+  }
+
+  updateActivity(activityId: string, request: {
+    activityId: string;
+    homeId: string;
+    userId: string;
+    type: string;
+    completed: boolean;
+    comment: string | null;
+    occurredOn: string;
+  }): Observable<HomeChanged> {
+    return this.http.put<HomeChanged>(`${this.apiUrl}/activities/${activityId}`, request);
+  }
+
+  removeActivity(activityId: string, homeId: string): Observable<HomeChanged> {
+    return this.http.delete<HomeChanged>(`${this.apiUrl}/activities/${activityId}?homeId=${homeId}`);
   }
 
   updateUserName(request: { userId: string; name: string }): Observable<{ name: string }> {

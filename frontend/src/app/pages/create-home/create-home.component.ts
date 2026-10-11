@@ -4,6 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { LanguageSelectComponent } from '../../components/language-select/language-select.component';
 import { ApiService } from '../../services/api.service';
+import { SessionService } from '../../services/session.service';
 
 @Component({
   selector: 'app-create-home',
@@ -16,6 +17,7 @@ export class CreateHomeComponent {
   private readonly apiService = inject(ApiService);
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
+  private readonly session = inject(SessionService);
   private readonly userId = signal('');
 
   readonly createHomeForm: FormGroup;
@@ -30,8 +32,8 @@ export class CreateHomeComponent {
     });
 
     afterNextRender(() => {
-      const storedUserId = localStorage.getItem('userId');
-      if (!storedUserId) {
+      const storedUserId = this.session.userId();
+      if (!this.session.token() || !storedUserId) {
         this.router.navigate(['/login']);
         return;
       }

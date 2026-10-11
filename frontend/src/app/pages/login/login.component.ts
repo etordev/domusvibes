@@ -4,6 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { LanguageSelectComponent } from '../../components/language-select/language-select.component';
 import { ApiService, CreateUserRequest, LoginRequest } from '../../services/api.service';
+import { SessionService } from '../../services/session.service';
 
 /** Password: min 6 chars, at least one upper, one lower, one digit, one special character */
 const STRONG_PASSWORD = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{6,}$/;
@@ -46,7 +47,8 @@ export class LoginComponent {
   constructor(
     private fb: FormBuilder,
     private apiService: ApiService,
-    private router: Router
+    private router: Router,
+    private session: SessionService
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -78,9 +80,12 @@ export class LoginComponent {
       this.apiService.login(loginData).subscribe({
         next: (response) => {
           this.isLoading.set(false);
-          localStorage.setItem('userId', response.id);
-          localStorage.setItem('userEmail', formValue.email);
-          localStorage.setItem('userName', response.name);
+          this.session.save({
+            token: response.token,
+            id: response.id,
+            name: response.name,
+            email: formValue.email
+          });
           this.router.navigate(['/dashboard']);
         },
         error: (error) => {
@@ -105,9 +110,12 @@ export class LoginComponent {
 
       this.apiService.createUser(userData).subscribe({
         next: (response) => {
-          localStorage.setItem('userId', response.id);
-          localStorage.setItem('userEmail', formValue.email);
-          localStorage.setItem('userName', formValue.name);
+          this.session.save({
+            token: response.token,
+            id: response.id,
+            name: response.name,
+            email: formValue.email
+          });
           this.router.navigate(['/dashboard']);
         },
         error: (error) => {

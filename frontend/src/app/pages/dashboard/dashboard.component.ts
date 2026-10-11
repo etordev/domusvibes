@@ -9,6 +9,7 @@ import { LanguageService } from '../../services/language.service';
 import { HomeListItem } from '../../services/api.service';
 import { environment } from '../../../environments/environment';
 import { noticeText } from '../../services/notice-text';
+import { SessionService } from '../../services/session.service';
 
 function normalizeHomes(raw: unknown): HomeListItem[] {
   if (!Array.isArray(raw)) return [];
@@ -57,18 +58,19 @@ export class DashboardComponent {
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
   private readonly language = inject(LanguageService);
+  private readonly session = inject(SessionService);
   private readonly userId = signal<string | null>(null);
   readonly waitingForSession = computed(() => this.userId() === null);
   readonly homes = httpResource<HomeListItem[]>(() => {
     const id = this.userId();
-    return id ? `${environment.apiUrl}/homes/user/${id}` : undefined;
+    return id ? `${environment.apiUrl}/homes/mine` : undefined;
   }, {
     defaultValue: [],
     parse: normalizeHomes
   });
   readonly notices = httpResource<StoredNotice[]>(() => {
     const id = this.userId();
-    return id ? `${environment.apiUrl}/homes/notices?userId=${id}` : undefined;
+    return id ? `${environment.apiUrl}/homes/notices` : undefined;
   }, {
     defaultValue: [],
     parse: normalizeNotices
@@ -80,8 +82,8 @@ export class DashboardComponent {
 
   constructor() {
     afterNextRender(() => {
-      const storedUserId = localStorage.getItem('userId');
-      if (!storedUserId) {
+      const storedUserId = this.session.userId();
+      if (!this.session.token() || !storedUserId) {
         this.router.navigate(['/login']);
         return;
       }
