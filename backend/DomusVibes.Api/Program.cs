@@ -15,9 +15,9 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-Console.WriteLine(
-    $"EF CONNECTION => {builder.Configuration.GetConnectionString("DefaultConnection")}"
-);
+var renderPort = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrWhiteSpace(renderPort))
+    builder.WebHost.UseUrls($"http://0.0.0.0:{renderPort}");
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
