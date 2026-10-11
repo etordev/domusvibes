@@ -79,13 +79,21 @@
         <div class="notice" [class.notice-alert]="notice.alert">{{ phrase(notice.message) }}</div>
       }
 
+      <div class="home-tabs" role="tablist">
+        <button type="button" role="tab" [class.active]="tab() === 'today'" [attr.aria-selected]="tab() === 'today'" (click)="setTab('today')">💛 {{ 'Home.TabToday' | translate }}</button>
+        <button type="button" role="tab" [class.active]="tab() === 'tasks'" [attr.aria-selected]="tab() === 'tasks'" (click)="setTab('tasks')">✨ {{ 'Home.TabTasks' | translate }}</button>
+        <button type="button" role="tab" [class.active]="tab() === 'turns'" [attr.aria-selected]="tab() === 'turns'" (click)="setTab('turns')">🔁 {{ 'Home.TabTurns' | translate }}</button>
+        <button type="button" role="tab" [class.active]="tab() === 'people'" [attr.aria-selected]="tab() === 'people'" (click)="setTab('people')">🏡 {{ 'Home.TabPeople' | translate }}</button>
+      </div>
+
+      @if (tab() === 'today') {
       <div class="section">
         <div class="section-heading">
           <h2>{{ chartTitle() }}</h2>
           <div class="chart-filters">
             <label>
               {{ 'Home.Month' | translate }}
-              <input type="month" [value]="selectedMonth()" [max]="latestMonth" (change)="setMonth($event)" />
+              <app-date-field mode="month" [value]="selectedMonth()" [max]="latestMonth" (valueChange)="setMonth($event)" />
             </label>
             <div class="range-switch" role="group" [attr.aria-label]="'Home.HealthPeriod' | translate">
               <button type="button" [class.active]="pulseRange() === 'month'" (click)="pulseRange.set('month')">{{ 'Home.WholeMonth' | translate }}</button>
@@ -94,11 +102,7 @@
             @if (pulseRange() === 'week') {
               <label>
                 {{ 'Home.Week' | translate }}
-                <select (change)="setWeek($event)">
-                @for (week of weeks(); track week.start) {
-                  <option [value]="week.start" [selected]="week.start === selectedWeek()">{{ week.label }}</option>
-                }
-                </select>
+                <app-choice-field [value]="selectedWeek()" [options]="weekChoices()" (valueChange)="setWeek($event)" />
               </label>
             }
           </div>
@@ -114,27 +118,15 @@
         <div class="form-grid">
           <label>
             {{ 'Home.Mood' | translate }}
-            <select [value]="mood()" (change)="setMood($event)">
-              <option value="happy">{{ 'Mood.happy' | translate }}</option>
-              <option value="normal">{{ 'Mood.normal' | translate }}</option>
-              <option value="stressed">{{ 'Mood.stressed' | translate }}</option>
-            </select>
+            <app-choice-field [value]="mood()" [options]="namedChoices('Mood', ['happy', 'normal', 'stressed'])" (valueChange)="setMood($event)" />
           </label>
           <label>
             {{ 'Home.Energy' | translate }}
-            <select [value]="energy()" (change)="setEnergy($event)">
-              <option value="high">{{ 'Energy.high' | translate }}</option>
-              <option value="medium">{{ 'Energy.medium' | translate }}</option>
-              <option value="low">{{ 'Energy.low' | translate }}</option>
-            </select>
+            <app-choice-field [value]="energy()" [options]="namedChoices('Energy', ['high', 'medium', 'low'])" (valueChange)="setEnergy($event)" />
           </label>
           <label>
             {{ 'Home.Availability' | translate }}
-            <select [value]="availability()" (change)="setAvailability($event)">
-              <option value="available">{{ 'Availability.available' | translate }}</option>
-              <option value="limited">{{ 'Availability.limited' | translate }}</option>
-              <option value="unavailable">{{ 'Availability.unavailable' | translate }}</option>
-            </select>
+            <app-choice-field [value]="availability()" [options]="namedChoices('Availability', ['available', 'limited', 'unavailable'])" (valueChange)="setAvailability($event)" />
           </label>
         </div>
         <button class="btn btn-primary" type="button" (click)="saveStatus()" [disabled]="isSavingStatus()">
@@ -144,36 +136,38 @@
           <p class="action-notice" [class.action-notice-error]="notice.error" role="status">{{ notice.message }}</p>
         }
       </div>
+      }
 
+      @if (tab() === 'tasks') {
       <div class="section">
         <h2>{{ 'Home.TaskTitle' | translate }}</h2>
         <p class="section-description">{{ 'Home.TaskHint' | translate }}</p>
         <div class="form-grid">
           <label>
             {{ 'Home.Task' | translate }}
-            <select [value]="activityType()" (change)="setActivityType($event)">
-              <option value="cleaning">{{ 'Tasks.cleaning' | translate }}</option>
-              <option value="shopping">{{ 'Tasks.shopping' | translate }}</option>
-              <option value="kitchen">{{ 'Tasks.kitchen' | translate }}</option>
-              <option value="trash">{{ 'Tasks.trash' | translate }}</option>
-              <option value="tidying">{{ 'Tasks.tidying' | translate }}</option>
-            </select>
+            <app-choice-field [value]="activityTask()" [options]="taskChoices()" (valueChange)="setActivityTask($event)" />
           </label>
           <label>
             {{ 'Home.Outcome' | translate }}
-            <select [value]="activityDone() ? 'done' : 'missed'" (change)="setActivityDone($event)">
-              <option value="done">{{ 'Outcome.Done' | translate }}</option>
-              <option value="missed">{{ 'Outcome.Missed' | translate }}</option>
-            </select>
+            <app-choice-field [value]="activityDone() ? 'done' : 'missed'" [options]="outcomeChoices()" (valueChange)="setActivityDone($event)" />
           </label>
           <label>
             {{ 'Home.Date' | translate }}
-            <input type="date" [value]="activityDate()" [max]="todayDate()" (change)="setActivityDate($event)" />
+            <app-date-field [value]="activityDate()" [max]="todayDate()" (valueChange)="setActivityDate($event)" />
           </label>
           <label>
             {{ 'Home.Note' | translate }}
             <input [value]="activityComment()" (input)="setComment($event)" maxlength="200" [placeholder]="'Home.Optional' | translate" />
           </label>
+          <div class="star-picker">
+            <span>{{ 'Home.Stars' | translate }}</span>
+            <div>
+              @for (star of [1, 2, 3, 4, 5]; track star) {
+                <button type="button" [class.on]="star <= activityStars()" (click)="setActivityStars(star)" [attr.aria-label]="star">★</button>
+              }
+            </div>
+            <small>{{ taskIcon(activityTask()) }} {{ 'Home.MinutesShort' | translate:{ count: taskMinutes(activityTask()) } }}</small>
+          </div>
         </div>
         <button class="btn btn-primary" type="button" (click)="logActivity()" [disabled]="isLoggingActivity()">
           {{ isLoggingActivity() ? ('Home.Saving' | translate) : ('Home.LogTask' | translate) }}
@@ -183,6 +177,171 @@
         }
       </div>
 
+      @if (details.suggestion; as suggestion) {
+        <div class="suggestion">
+          <h2>{{ 'Home.SuggestionTitle' | translate }}</h2>
+          <p>{{ suggestionText(suggestion) }}</p>
+          @if (suggestion.taskKeys.length > 0) {
+            <div class="suggestion-picks">
+              @for (key of suggestion.taskKeys; track key) {
+                <button type="button" (click)="pickSuggested(key)">{{ taskIcon(key) }} {{ activityLabel(key) }}</button>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <div class="section">
+        <div class="section-heading">
+          <h2>{{ 'Home.ActivityTitle' | translate }}</h2>
+          <div class="chart-filters">
+            <label>
+              {{ 'Home.FilterTask' | translate }}
+              <app-choice-field [value]="taskFilter()" [options]="filterChoices()" (valueChange)="setTaskFilter($event)" />
+            </label>
+            <label>
+              {{ 'Home.FilterWhen' | translate }}
+              <app-choice-field [value]="whenFilter()" [options]="whenChoices()" (valueChange)="setWhenFilter($event)" />
+            </label>
+          </div>
+        </div>
+        @if (visibleActivities().length > 0) {
+          <div class="activity-list">
+            @for (activity of visibleActivities(); track activity.id) {
+              <div class="activity-row">
+                @if (editingId() === activity.id) {
+                  <div class="activity-edit">
+                    <label>
+                      {{ 'Home.Task' | translate }}
+                      <app-choice-field [value]="editTask()" [options]="taskChoices()" (valueChange)="setEditTask($event)" />
+                    </label>
+                    <label>
+                      {{ 'Home.Outcome' | translate }}
+                      <app-choice-field [value]="editDone() ? 'done' : 'missed'" [options]="outcomeChoices()" (valueChange)="setEditDone($event)" />
+                    </label>
+                    <label>
+                      {{ 'Home.Date' | translate }}
+                      <app-date-field [value]="editDate()" [max]="todayDate()" (valueChange)="setEditDate($event)" />
+                    </label>
+                    <label>
+                      {{ 'Home.Note' | translate }}
+                      <input [value]="editComment()" (input)="setEditComment($event)" maxlength="200" [placeholder]="'Home.Optional' | translate" />
+                    </label>
+                    <div class="star-picker">
+                      <span>{{ 'Home.Stars' | translate }}</span>
+                      <div>
+                        @for (star of [1, 2, 3, 4, 5]; track star) {
+                          <button type="button" [class.on]="star <= editStars()" (click)="editStars.set(star)">★</button>
+                        }
+                      </div>
+                    </div>
+                    <div class="activity-actions">
+                      <button class="btn btn-primary" type="button" (click)="saveActivityEdit()" [disabled]="isSavingEdit()">
+                        {{ isSavingEdit() ? ('Home.Saving' | translate) : ('Profile.Save' | translate) }}
+                      </button>
+                      <button class="btn btn-outline" type="button" (click)="cancelActivityEdit()">{{ 'Profile.Cancel' | translate }}</button>
+                    </div>
+                  </div>
+                } @else {
+                  <div>
+                    <span class="task-icon">{{ taskIcon(activity.taskKey || activity.type) }}</span>
+                    {{ loggedLine(activity) }}
+                    <span class="activity-stars" [attr.aria-label]="activity.weight">{{ stars(activity.weight) }}</span>
+                    @if (activity.comment) {
+                      <span class="activity-note">“{{ activity.comment }}”</span>
+                    }
+                  </div>
+                  <div class="activity-side">
+                    <span class="activity-time">{{ activityWhen(activity.occurredOn || activity.createdAt) }}</span>
+                    @if (isCurrentUser(activity.userId)) {
+                      <div class="activity-actions">
+                        <button class="btn btn-outline" type="button" (click)="beginActivityEdit(activity)">{{ 'Home.EditActivity' | translate }}</button>
+                        <button class="btn btn-danger" type="button" (click)="removeActivity(activity)">{{ 'Home.Remove' | translate }}</button>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-members">
+            <p>{{ 'Home.NoTasks' | translate }}</p>
+          </div>
+        }
+      </div>
+      }
+
+      @if (tab() === 'turns') {
+      <div class="section">
+        <h2>{{ 'Home.TurnTitle' | translate }}</h2>
+        <p class="section-description">{{ 'Home.TurnHint' | translate }}</p>
+        <div class="form-grid">
+          <label>
+            {{ 'Home.Task' | translate }}
+            <app-choice-field [value]="turnTask()" [options]="taskChoices()" (valueChange)="setTurnTask($event)" />
+          </label>
+          <label>
+            {{ 'Home.EveryDays' | translate }}
+            <input type="number" min="1" max="90" [value]="turnInterval()" (input)="setTurnInterval($event)" />
+          </label>
+          <label>
+            {{ 'Home.AlertDays' | translate }}
+            <input type="number" min="0" max="30" [value]="turnAlert()" (input)="setTurnAlert($event)" />
+          </label>
+          <label>
+            {{ 'Home.StartsOn' | translate }}
+            <app-date-field [value]="turnStart()" (valueChange)="setTurnStart($event)" />
+          </label>
+        </div>
+        <fieldset class="turn-people">
+          <legend>{{ 'Home.Who' | translate }}</legend>
+          @for (member of details.members; track member.userId) {
+            <label>
+              <input type="checkbox" [checked]="memberInTurn(member.userId)" (change)="toggleTurnMember(member.userId)" />
+              {{ member.name }}
+            </label>
+          }
+        </fieldset>
+        <button class="btn btn-primary" type="button" (click)="saveTurn()" [disabled]="isSavingTurn() || turnMembers().length === 0">
+          {{ isSavingTurn() ? ('Home.Saving' | translate) : ('Home.SaveTurn' | translate) }}
+        </button>
+        @if (turnNotice(); as notice) {
+          <p class="action-notice" [class.action-notice-error]="notice.error" role="status">{{ notice.message }}</p>
+        }
+        <h3>{{ 'Home.UpcomingTitle' | translate }}</h3>
+        @if (details.turns.length > 0) {
+          <div class="activity-list">
+            @for (turn of details.turns; track turn.id) {
+              <div class="activity-row">
+                <div>
+                  <span class="task-icon">{{ taskIcon(turn.taskKey) }}</span>
+                  {{ turnLine(turn) }}
+                </div>
+                <button class="btn btn-outline" type="button" (click)="removeTurn(turn)">{{ 'Home.RemoveTurn' | translate }}</button>
+              </div>
+            }
+          </div>
+        } @else {
+          <p>{{ 'Home.NoTurns' | translate }}</p>
+        }
+      </div>
+      }
+
+      @if (tab() === 'people') {
+      <div class="section">
+        <h2>{{ 'Home.ShareTitle' | translate }}</h2>
+        <p class="section-description">{{ 'Home.ShareHint' | translate }}</p>
+        <div class="share-list">
+          @for (share of details.shares; track share.userId) {
+            <div class="share-row">
+              <span>{{ share.name }}</span>
+              <div class="share-bar"><span [style.width.%]="share.percent"></span></div>
+              <strong>{{ share.percent }}%</strong>
+            </div>
+          }
+        </div>
+      </div>
       <div class="section">
         <h2>{{ 'Home.Members' | translate }}</h2>
         @if (details.members.length > 0) {
@@ -212,10 +371,7 @@
                   <div class="member-actions">
                     <label>
                       {{ 'Home.Role' | translate }}
-                      <select [value]="member.role" (change)="changeRole(member.userId, $event)">
-                        <option value="member">{{ 'Roles.member' | translate }}</option>
-                        <option value="owner">{{ 'Roles.owner' | translate }}</option>
-                      </select>
+                      <app-choice-field [value]="member.role" [options]="namedChoices('Roles', ['member', 'owner'])" (valueChange)="changeRole(member.userId, $event)" />
                     </label>
                     @if (member.role !== 'owner') {
                       <button class="btn btn-danger" type="button" (click)="removeMember(member.userId, member.name)">
@@ -229,74 +385,6 @@
           </div>
         }
       </div>
-
-      <div class="section">
-        <h2>{{ 'Home.ActivityTitle' | translate }}</h2>
-        @if (details.recentActivities.length > 0) {
-          <div class="activity-list">
-            @for (activity of details.recentActivities; track activity.id) {
-              <div class="activity-row">
-                @if (editingId() === activity.id) {
-                  <div class="activity-edit">
-                    <label>
-                      {{ 'Home.Task' | translate }}
-                      <select (change)="setEditType($event)">
-                        <option value="cleaning" [selected]="editType() === 'cleaning'">{{ 'Tasks.cleaning' | translate }}</option>
-                        <option value="shopping" [selected]="editType() === 'shopping'">{{ 'Tasks.shopping' | translate }}</option>
-                        <option value="kitchen" [selected]="editType() === 'kitchen'">{{ 'Tasks.kitchen' | translate }}</option>
-                        <option value="trash" [selected]="editType() === 'trash'">{{ 'Tasks.trash' | translate }}</option>
-                        <option value="tidying" [selected]="editType() === 'tidying'">{{ 'Tasks.tidying' | translate }}</option>
-                      </select>
-                    </label>
-                    <label>
-                      {{ 'Home.Outcome' | translate }}
-                      <select (change)="setEditDone($event)">
-                        <option value="done" [selected]="editDone()">{{ 'Outcome.Done' | translate }}</option>
-                        <option value="missed" [selected]="!editDone()">{{ 'Outcome.Missed' | translate }}</option>
-                      </select>
-                    </label>
-                    <label>
-                      {{ 'Home.Date' | translate }}
-                      <input type="date" [value]="editDate()" [max]="todayDate()" (change)="setEditDate($event)" />
-                    </label>
-                    <label>
-                      {{ 'Home.Note' | translate }}
-                      <input [value]="editComment()" (input)="setEditComment($event)" maxlength="200" [placeholder]="'Home.Optional' | translate" />
-                    </label>
-                    <div class="activity-actions">
-                      <button class="btn btn-primary" type="button" (click)="saveActivityEdit()" [disabled]="isSavingEdit()">
-                        {{ isSavingEdit() ? ('Home.Saving' | translate) : ('Profile.Save' | translate) }}
-                      </button>
-                      <button class="btn btn-outline" type="button" (click)="cancelActivityEdit()">{{ 'Profile.Cancel' | translate }}</button>
-                    </div>
-                  </div>
-                } @else {
-                  <div>
-                    {{ loggedLine(activity) }}
-                    @if (activity.comment) {
-                      <span class="activity-note">“{{ activity.comment }}”</span>
-                    }
-                  </div>
-                  <div class="activity-side">
-                    <span class="activity-time">{{ activityWhen(activity.occurredOn || activity.createdAt) }}</span>
-                    @if (isCurrentUser(activity.userId)) {
-                      <div class="activity-actions">
-                        <button class="btn btn-outline" type="button" (click)="beginActivityEdit(activity)">{{ 'Home.EditActivity' | translate }}</button>
-                        <button class="btn btn-danger" type="button" (click)="removeActivity(activity)">{{ 'Home.Remove' | translate }}</button>
-                      </div>
-                    }
-                  </div>
-                }
-              </div>
-            }
-          </div>
-        } @else {
-          <div class="empty-members">
-            <p>{{ 'Home.NoTasks' | translate }}</p>
-          </div>
-        }
-      </div>
-
       <div class="section">
         <h2>{{ 'Home.InviteTitle' | translate }}</h2>
         <p class="section-description">{{ 'Home.InviteHint' | translate }}</p>
@@ -321,6 +409,7 @@
           }
         </div>
       </div>
+      }
     </div>
   }
 </div>

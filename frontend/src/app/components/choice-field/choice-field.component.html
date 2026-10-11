@@ -1,0 +1,25 @@
+<div class="choice-field" (click)="$event.stopPropagation()">
+  <button class="choice-trigger" type="button" (click)="toggle($event)" [attr.aria-expanded]="open()">
+    <span>{{ currentLabel() }}</span>
+    <span class="chevron" aria-hidden="true"></span>
+  </button>
+  @if (open()) {
+    <div class="choice-panel" role="listbox" #panel [class.above]="dropUp()">
+      @for (group of groups(); track group.label) {
+        @if (group.label) {
+          <div class="choice-group">{{ group.label }}</div>
+        }
+        @for (option of group.options; track option.value) {
+          <button
+            type="button"
+            role="option"
+            [attr.aria-selected]="option.value === value()"
+            [class.selected]="option.value === value()"
+            (click)="choose(option.value)">
+            {{ option.label }}
+          </button>
+        }
+      }
+    </div>
+  }
+</div>

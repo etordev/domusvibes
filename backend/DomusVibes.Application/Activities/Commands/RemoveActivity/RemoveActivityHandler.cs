@@ -35,7 +35,7 @@ namespace DomusVibes.Application.Activities.Commands.RemoveActivity
 
             var day = activity.OccurredOn;
             var outcome = activity.Completed ? "done" : "missed";
-            var type = activity.Type;
+            var type = activity.TaskKey ?? activity.Type;
             _db.ActivityEvents.Remove(activity);
             await _db.SaveChangesAsync(cancellationToken);
 

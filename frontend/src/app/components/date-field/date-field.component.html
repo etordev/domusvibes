@@ -1,0 +1,41 @@
+<div class="date-field" (click)="$event.stopPropagation()">
+  <button class="date-trigger" type="button" (click)="toggle($event)" [attr.aria-expanded]="open()">
+    {{ label() }}
+  </button>
+  @if (open()) {
+    <div class="date-panel" role="dialog" #panel [class.above]="dropUp()">
+      <div class="date-nav">
+        <button type="button" (click)="shift(-1)" aria-label="Previous">‹</button>
+        <strong>{{ heading() }}</strong>
+        <button type="button" (click)="shift(1)" aria-label="Next">›</button>
+      </div>
+      @if (mode() === 'date') {
+        <div class="date-week">
+          @for (name of weekdayNames(); track $index) {
+            <span>{{ name }}</span>
+          }
+        </div>
+        <div class="date-grid">
+          @for (day of days(); track day.iso) {
+            <button
+              type="button"
+              [disabled]="day.disabled"
+              [class.muted]="!day.inMonth"
+              [class.selected]="day.iso === value()"
+              (click)="choose(day.iso)">
+              {{ day.number }}
+            </button>
+          }
+        </div>
+      } @else {
+        <div class="month-grid">
+          @for (month of months(); track month.value) {
+            <button type="button" [disabled]="month.disabled" [class.selected]="month.value === value()" (click)="choose(month.value)">
+              {{ month.label }}
+            </button>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

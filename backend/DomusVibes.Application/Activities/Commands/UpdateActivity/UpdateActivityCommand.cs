@@ -8,6 +8,8 @@ namespace DomusVibes.Application.Activities.Commands.UpdateActivity
         Guid HomeId,
         Guid UserId,
         string Type,
+        string? TaskKey,
+        int Weight,
         bool Completed,
         string? Comment,
         DateOnly OccurredOn

@@ -106,10 +106,38 @@ export interface ActivityItem {
   userId: string;
   userName: string;
   type: string;
+  taskKey: string | null;
+  weight: number;
   completed: boolean;
   comment: string | null;
   occurredOn: string;
   createdAt: string;
+}
+
+export interface ShareItem {
+  userId: string;
+  name: string;
+  points: number;
+  percent: number;
+}
+
+export interface TaskSuggestion {
+  kind: string;
+  yours: number;
+  otherName: string | null;
+  theirs: number;
+  taskKeys: string[];
+}
+
+export interface HomeTurnItem {
+  id: string;
+  taskKey: string;
+  intervalDays: number;
+  alertDays: number;
+  dueOn: string;
+  daysUntil: number;
+  userId: string;
+  userName: string;
 }
 
 export interface PulsePoint {
@@ -134,6 +162,9 @@ export interface HomeDashboard {
   members: MemberStatus[];
   recentActivities: ActivityItem[];
   history: PulsePoint[];
+  shares: ShareItem[];
+  suggestion: TaskSuggestion | null;
+  turns: HomeTurnItem[];
 }
 
 @Injectable({
@@ -191,6 +222,8 @@ export class ApiService {
     homeId: string;
     userId: string;
     type: string;
+    taskKey: string;
+    weight: number;
     completed: boolean;
     comment: string | null;
     occurredOn: string;
@@ -203,6 +236,8 @@ export class ApiService {
     homeId: string;
     userId: string;
     type: string;
+    taskKey: string;
+    weight: number;
     completed: boolean;
     comment: string | null;
     occurredOn: string;
@@ -212,6 +247,22 @@ export class ApiService {
 
   removeActivity(activityId: string, homeId: string): Observable<HomeChanged> {
     return this.http.delete<HomeChanged>(`${this.apiUrl}/activities/${activityId}?homeId=${homeId}`);
+  }
+
+  saveTurn(homeId: string, request: {
+    homeId: string;
+    userId: string;
+    taskKey: string;
+    intervalDays: number;
+    alertDays: number;
+    startsOn: string;
+    memberIds: string[];
+  }): Observable<HomeChanged> {
+    return this.http.post<HomeChanged>(`${this.apiUrl}/homes/${homeId}/turns`, request);
+  }
+
+  removeTurn(homeId: string, turnId: string): Observable<HomeChanged> {
+    return this.http.delete<HomeChanged>(`${this.apiUrl}/homes/${homeId}/turns/${turnId}`);
   }
 
   updateUserName(request: { userId: string; name: string }): Observable<{ name: string }> {

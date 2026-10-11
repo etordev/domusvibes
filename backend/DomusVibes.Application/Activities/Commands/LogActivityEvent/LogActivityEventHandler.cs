@@ -1,5 +1,6 @@
 using DomusVibes.Application.HomePulse;
 using DomusVibes.Domain.Entities;
+using DomusVibes.Domain.Tasks;
 using DomusVibes.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +25,7 @@ namespace DomusVibes.Application.Activities.Commands.LogActivityEvent
             if (member == null)
                 throw new UnauthorizedAccessException("You are not a member of this home.");
 
+            var task = HouseholdTasks.Find(request.TaskKey)!;
             var comment = string.IsNullOrWhiteSpace(request.Comment) ? null : request.Comment.Trim();
             var day = request.OccurredOn ?? HomePulseRecorder.Today();
             _db.ActivityEvents.Add(new ActivityEvent
@@ -31,7 +33,9 @@ namespace DomusVibes.Application.Activities.Commands.LogActivityEvent
                 Id = Guid.NewGuid(),
                 HomeId = request.HomeId,
                 UserId = request.UserId,
-                Type = request.Type,
+                Type = task.Group,
+                TaskKey = task.Key,
+                Weight = request.Weight,
                 Completed = request.Completed,
                 Comment = comment,
                 OccurredOn = day,
@@ -47,7 +51,7 @@ namespace DomusVibes.Application.Activities.Commands.LogActivityEvent
                 request.UserId,
                 member.User.Name,
                 "activity",
-                $"activity|{member.User.Name}|{request.Type}|{outcome}|{day:yyyy-MM-dd}",
+                $"activity|{member.User.Name}|{task.Key}|{outcome}|{day:yyyy-MM-dd}",
                 pulse.LowMood ? "The house mood is low." : null,
                 pulse.Score);
         }

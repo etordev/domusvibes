@@ -64,10 +64,10 @@
 .menu {
   position: absolute;
   top: calc(100% + 0.4rem);
+  left: 0;
   right: 0;
   z-index: 40;
-  min-width: 100%;
-  width: max-content;
+  width: auto;
   margin: 0;
   padding: 0.35rem;
   list-style: none;

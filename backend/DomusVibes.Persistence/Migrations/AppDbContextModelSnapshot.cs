@@ -43,12 +43,18 @@ namespace DomusVibes.Persistence.Migrations
                     b.Property<DateOnly>("OccurredOn")
                         .HasColumnType("date");
 
+                    b.Property<string>("TaskKey")
+                        .HasColumnType("text");
+
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("Weight")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -233,6 +239,55 @@ namespace DomusVibes.Persistence.Migrations
                     b.ToTable("HomePulses");
                 });
 
+            modelBuilder.Entity("DomusVibes.Domain.Entities.HomeTurn", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("AlertDays")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("HomeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("IntervalDays")
+                        .HasColumnType("integer");
+
+                    b.Property<DateOnly>("StartsOn")
+                        .HasColumnType("date");
+
+                    b.Property<string>("TaskKey")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HomeId", "TaskKey")
+                        .IsUnique();
+
+                    b.ToTable("HomeTurns");
+                });
+
+            modelBuilder.Entity("DomusVibes.Domain.Entities.HomeTurnMember", b =>
+                {
+                    b.Property<Guid>("TurnId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.HasKey("TurnId", "UserId");
+
+                    b.ToTable("HomeTurnMembers");
+                });
+
             modelBuilder.Entity("DomusVibes.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -336,7 +391,32 @@ namespace DomusVibes.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("DomusVibes.Domain.Entities.HomeTurn", b =>
+                {
+                    b.HasOne("DomusVibes.Domain.Entities.Home", null)
+                        .WithMany()
+                        .HasForeignKey("HomeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DomusVibes.Domain.Entities.HomeTurnMember", b =>
+                {
+                    b.HasOne("DomusVibes.Domain.Entities.HomeTurn", "Turn")
+                        .WithMany("Members")
+                        .HasForeignKey("TurnId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Turn");
+                });
+
             modelBuilder.Entity("DomusVibes.Domain.Entities.Home", b =>
+                {
+                    b.Navigation("Members");
+                });
+
+            modelBuilder.Entity("DomusVibes.Domain.Entities.HomeTurn", b =>
                 {
                     b.Navigation("Members");
                 });

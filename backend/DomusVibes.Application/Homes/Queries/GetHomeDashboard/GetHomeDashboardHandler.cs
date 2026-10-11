@@ -1,4 +1,5 @@
 using DomusVibes.Application.HomePulse;
+using DomusVibes.Domain.Entities;
 using DomusVibes.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -65,6 +66,18 @@ namespace DomusVibes.Application.Homes.Queries.GetHomeDashboard
 
             var mine = statuses.FirstOrDefault(s => s.UserId == request.UserId);
             var anyStatus = statuses.Count > 0;
+            var since = today.AddDays(-60);
+            var recent = await _db.ActivityEvents
+                .Where(a => a.HomeId == request.HomeId && a.OccurredOn >= since)
+                .OrderByDescending(a => a.OccurredOn)
+                .ThenByDescending(a => a.CreatedAt)
+                .Take(80)
+                .ToListAsync(cancellationToken);
+            var names = await _db.Users
+                .Where(user => recent.Select(activity => activity.UserId).Contains(user.Id))
+                .ToDictionaryAsync(user => user.Id, user => user.Name, cancellationToken);
+            var shares = HouseholdInsight.Shares(members, recent, today);
+            var turns = await UpcomingTurns(request.HomeId, today, members, cancellationToken);
 
             return new HomeDashboardDto
             {
@@ -99,25 +112,63 @@ namespace DomusVibes.Application.Homes.Queries.GetHomeDashboard
                         Availability = status?.Availability
                     };
                 }).ToList(),
-                RecentActivities = await _db.ActivityEvents
-                    .Where(a => a.HomeId == request.HomeId)
-                    .OrderByDescending(a => a.OccurredOn)
-                    .ThenByDescending(a => a.CreatedAt)
-                    .Take(12)
-                    .Join(_db.Users, a => a.UserId, u => u.Id, (a, u) => new ActivityItemDto
-                    {
-                        Id = a.Id,
-                        UserId = a.UserId,
-                        UserName = u.Name,
-                        Type = a.Type,
-                        Completed = a.Completed,
-                        Comment = a.Comment,
-                        OccurredOn = a.OccurredOn,
-                        CreatedAt = a.CreatedAt
-                    })
-                    .ToListAsync(cancellationToken),
-                History = Points(history, rangeStart, rangeEnd.DayNumber - rangeStart.DayNumber + 1)
+                RecentActivities = recent.Select(activity => new ActivityItemDto
+                {
+                    Id = activity.Id,
+                    UserId = activity.UserId,
+                    UserName = names.GetValueOrDefault(activity.UserId) ?? "",
+                    Type = activity.Type,
+                    TaskKey = activity.TaskKey,
+                    Weight = activity.Weight < 1 ? 1 : activity.Weight,
+                    Completed = activity.Completed,
+                    Comment = activity.Comment,
+                    OccurredOn = activity.OccurredOn,
+                    CreatedAt = activity.CreatedAt
+                }).ToList(),
+                History = Points(history, rangeStart, rangeEnd.DayNumber - rangeStart.DayNumber + 1),
+                Shares = shares,
+                Suggestion = HouseholdInsight.Suggest(request.UserId, shares, recent, today),
+                Turns = turns
             };
+        }
+
+        private async Task<List<TurnItemDto>> UpcomingTurns(
+            Guid homeId,
+            DateOnly today,
+            List<HomeMember> members,
+            CancellationToken cancellationToken)
+        {
+            var names = members.ToDictionary(member => member.UserId, member => member.User.Name);
+            var stored = await _db.HomeTurns
+                .Where(turn => turn.HomeId == homeId)
+                .Include(turn => turn.Members)
+                .ToListAsync(cancellationToken);
+            var result = new List<TurnItemDto>();
+            foreach (var turn in stored.Where(turn => turn.Members.Count > 0))
+            {
+                var (item, message) = HouseholdInsight.NextTurn(turn, today, names);
+                result.Add(item);
+                if (item.DaysUntil > turn.AlertDays)
+                    continue;
+                var prefix = $"turn|{turn.TaskKey}|{item.DueOn:yyyy-MM-dd}|";
+                var already = await _db.HomeNotices.AnyAsync(
+                    notice => notice.HomeId == homeId && notice.Message.StartsWith(prefix),
+                    cancellationToken);
+                if (already)
+                    continue;
+                _db.HomeNotices.Add(new HomeNotice
+                {
+                    Id = Guid.NewGuid(),
+                    HomeId = homeId,
+                    ActorUserId = item.UserId,
+                    Message = message,
+                    CreatedAt = DateTimeOffset.UtcNow
+                });
+            }
+
+            if (_db.ChangeTracker.HasChanges())
+                await _db.SaveChangesAsync(cancellationToken);
+            return result.OrderBy(item => item.DueOn).ToList();
         }
 
         private static string Word(int score, bool any, string high, string mid, string low)

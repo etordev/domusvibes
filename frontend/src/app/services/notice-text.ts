@@ -43,6 +43,17 @@ export function noticeText(translate: TranslateService, message: string): string
     }
   }
 
+  const turn = /^turn\|([^|]*)\|(\d{4}-\d{2}-\d{2})\|([^|]*)\|(\d+)$/.exec(message);
+  if (turn) {
+    const days = Number(turn[4]);
+    const taskKey = `Tasks.${turn[1]}`;
+    const taskLabel = translate.instant(taskKey);
+    const task = taskLabel === taskKey ? turn[1] : taskLabel;
+    if (days <= 0) return translate.instant('Home.TurnToday', { name: turn[3], task });
+    if (days === 1) return translate.instant('Home.TurnTomorrow', { name: turn[3], task });
+    return translate.instant('Home.TurnInDays', { days, name: turn[3], task });
+  }
+
   const structuredStatus = /^status\|([^|]*)$/.exec(message);
   if (structuredStatus) {
     return translate.instant('Home.CheckinNotice', { name: structuredStatus[1] });

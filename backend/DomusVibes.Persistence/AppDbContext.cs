@@ -15,6 +15,8 @@ namespace DomusVibes.Persistence
         public DbSet<HomePulse> HomePulses => Set<HomePulse>();
         public DbSet<HomeNotice> HomeNotices => Set<HomeNotice>();
         public DbSet<HomeNoticeReceipt> HomeNoticeReceipts => Set<HomeNoticeReceipt>();
+        public DbSet<HomeTurn> HomeTurns => Set<HomeTurn>();
+        public DbSet<HomeTurnMember> HomeTurnMembers => Set<HomeTurnMember>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -67,6 +69,22 @@ namespace DomusVibes.Persistence
                 .HasOne(r => r.Notice)
                 .WithMany()
                 .HasForeignKey(r => r.NoticeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<HomeTurn>()
+                .HasIndex(t => new { t.HomeId, t.TaskKey })
+                .IsUnique();
+            modelBuilder.Entity<HomeTurn>()
+                .HasOne<Home>()
+                .WithMany()
+                .HasForeignKey(t => t.HomeId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<HomeTurnMember>()
+                .HasKey(m => new { m.TurnId, m.UserId });
+            modelBuilder.Entity<HomeTurnMember>()
+                .HasOne(m => m.Turn)
+                .WithMany(t => t.Members)
+                .HasForeignKey(m => m.TurnId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

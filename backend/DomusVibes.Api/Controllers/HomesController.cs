@@ -14,6 +14,8 @@ using Microsoft.AspNetCore.SignalR;
 using DomusVibes.Application.Homes.Queries.GetHomeDetails;
 using DomusVibes.Application.Homes.Queries.GetHomesByUserId;
 using DomusVibes.Application.Notices;
+using DomusVibes.Application.Turns.Commands.RemoveHomeTurn;
+using DomusVibes.Application.Turns.Commands.SaveHomeTurn;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -127,6 +129,22 @@ namespace DomusVibes.Api.Controllers
         {
             var code = await _mediator.Send(command with { ExecutorUserId = CurrentUser.Id(User) });
             return Ok(new { inviteCode = code });
+        }
+
+        [HttpPost("{homeId:guid}/turns")]
+        public async Task<IActionResult> SaveTurn(Guid homeId, [FromBody] SaveHomeTurnCommand command, CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(command with { HomeId = homeId, UserId = CurrentUser.Id(User) }, cancellationToken);
+            await _hub.Clients.Group(homeId.ToString("D")).SendAsync("homeChanged", result, cancellationToken);
+            return Ok(result);
+        }
+
+        [HttpDelete("{homeId:guid}/turns/{turnId:guid}")]
+        public async Task<IActionResult> RemoveTurn(Guid homeId, Guid turnId, CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(new RemoveHomeTurnCommand(turnId, homeId, CurrentUser.Id(User)), cancellationToken);
+            await _hub.Clients.Group(homeId.ToString("D")).SendAsync("homeChanged", result, cancellationToken);
+            return Ok(result);
         }
 
         [HttpPost("invite/join")]

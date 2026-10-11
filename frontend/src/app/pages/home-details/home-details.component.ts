@@ -8,8 +8,11 @@ import { LanguageSelectComponent } from '../../components/language-select/langua
 import { LogoutPrompt } from '../../components/logout-dialog/logout-prompt';
 import { ProfileNameComponent } from '../../components/profile-name/profile-name.component';
 import { Dialog } from '@angular/cdk/dialog';
-import { ApiService, ActivityItem, HomeChanged, HomeDashboard, PulsePoint } from '../../services/api.service';
+import { ApiService, ActivityItem, HomeChanged, HomeDashboard, HomeTurnItem, PulsePoint, TaskSuggestion } from '../../services/api.service';
+import { HOUSEHOLD_TASKS, TASK_GROUPS, householdTask } from '../../services/household-tasks';
 import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
+import { ChoiceFieldComponent, ChoiceOption } from '../../components/choice-field/choice-field.component';
+import { DateFieldComponent } from '../../components/date-field/date-field.component';
 import { LanguageService } from '../../services/language.service';
 import { environment } from '../../../environments/environment';
 import { noticeText } from '../../services/notice-text';
@@ -97,6 +100,12 @@ function localDateInput(date = new Date()): string {
   return local.toISOString().slice(0, 10);
 }
 
+function shiftDate(iso: string, days: number): string {
+  const date = new Date(`${iso}T00:00:00`);
+  date.setDate(date.getDate() + days);
+  return localDateInput(date);
+}
+
 function text(value: unknown, fallback = ''): string {
   return value == null ? fallback : String(value);
 }
@@ -107,6 +116,9 @@ function readDashboard(raw: unknown): HomeDashboard {
   const members = Array.isArray(item['members']) ? item['members'] as Record<string, unknown>[] : [];
   const activities = Array.isArray(item['recentActivities']) ? item['recentActivities'] as Record<string, unknown>[] : [];
   const history = Array.isArray(item['history']) ? item['history'] as Record<string, unknown>[] : [];
+  const shares = Array.isArray(item['shares']) ? item['shares'] as Record<string, unknown>[] : [];
+  const turns = Array.isArray(item['turns']) ? item['turns'] as Record<string, unknown>[] : [];
+  const suggestion = item['suggestion'] as Record<string, unknown> | null;
 
   return {
     homeId: text(item['homeId']),
@@ -139,6 +151,8 @@ function readDashboard(raw: unknown): HomeDashboard {
       userId: text(activity['userId']),
       userName: text(activity['userName']),
       type: text(activity['type']),
+      taskKey: activity['taskKey'] == null ? null : text(activity['taskKey']),
+      weight: Math.max(1, Number(activity['weight'] ?? 1)),
       completed: Boolean(activity['completed']),
       comment: activity['comment'] == null ? null : text(activity['comment']),
       occurredOn: text(activity['occurredOn']),
@@ -147,6 +161,29 @@ function readDashboard(raw: unknown): HomeDashboard {
     history: history.map(point => ({
       day: text(point['day']),
       score: point['score'] == null ? null : Number(point['score'])
+    })),
+    shares: shares.map(share => ({
+      userId: text(share['userId']),
+      name: text(share['name']),
+      points: Number(share['points'] ?? 0),
+      percent: Number(share['percent'] ?? 0)
+    })),
+    suggestion: suggestion ? {
+      kind: text(suggestion['kind'], 'even'),
+      yours: Number(suggestion['yours'] ?? 0),
+      otherName: suggestion['otherName'] == null ? null : text(suggestion['otherName']),
+      theirs: Number(suggestion['theirs'] ?? 0),
+      taskKeys: Array.isArray(suggestion['taskKeys']) ? suggestion['taskKeys'].map(key => text(key)) : []
+    } : null,
+    turns: turns.map(turn => ({
+      id: text(turn['id']),
+      taskKey: text(turn['taskKey']),
+      intervalDays: Number(turn['intervalDays'] ?? 7),
+      alertDays: Number(turn['alertDays'] ?? 3),
+      dueOn: text(turn['dueOn']),
+      daysUntil: Number(turn['daysUntil'] ?? 0),
+      userId: text(turn['userId']),
+      userName: text(turn['userName'])
     }))
   };
 }
@@ -154,7 +191,7 @@ function readDashboard(raw: unknown): HomeDashboard {
 @Component({
   selector: 'app-home-details',
   standalone: true,
-  imports: [RouterModule, ProfileNameComponent, TranslateModule, LanguageSelectComponent],
+  imports: [RouterModule, ProfileNameComponent, TranslateModule, LanguageSelectComponent, DateFieldComponent, ChoiceFieldComponent],
   templateUrl: './home-details.component.html',
   styleUrls: ['./home-details.component.scss']
 })
@@ -196,7 +233,6 @@ export class HomeDetailsComponent implements OnDestroy {
   readonly isSavingStatus = signal(false);
   readonly isLoggingActivity = signal(false);
   readonly editingId = signal<string | null>(null);
-  readonly editType = signal('cleaning');
   readonly editDone = signal(true);
   readonly editDate = signal(localDateInput());
   readonly editComment = signal('');
@@ -210,7 +246,23 @@ export class HomeDetailsComponent implements OnDestroy {
   readonly mood = signal('normal');
   readonly energy = signal('medium');
   readonly availability = signal('available');
-  readonly activityType = signal('cleaning');
+  readonly tab = signal<'today' | 'tasks' | 'turns' | 'people'>('today');
+  readonly taskGroups = TASK_GROUPS;
+  readonly householdTasks = HOUSEHOLD_TASKS;
+  readonly taskFilter = signal('all');
+  readonly whenFilter = signal('14');
+  readonly activityTask = signal('bathroom');
+  readonly activityStars = signal(5);
+  readonly editTask = signal('bathroom');
+  readonly editStars = signal(5);
+  readonly turnTask = signal('bathroom');
+  readonly turnInterval = signal(7);
+  readonly turnAlert = signal(3);
+  readonly turnStart = signal(localDateInput());
+  readonly turnMembers = signal<string[]>([]);
+  readonly isSavingTurn = signal(false);
+  readonly turnNotice = signal<{ id: number; message: string; error: boolean } | null>(null);
+  private turnMembersReady = false;
   readonly activityDone = signal(true);
   readonly activityComment = signal('');
   readonly activityDate = signal(localDateInput());
@@ -278,6 +330,13 @@ export class HomeDetailsComponent implements OnDestroy {
     });
 
     effect(() => {
+      const members = this.dashboard.value()?.members ?? [];
+      if (this.turnMembersReady || members.length === 0) return;
+      this.turnMembers.set(members.map(member => member.userId));
+      this.turnMembersReady = true;
+    });
+
+    effect(() => {
       const canvas = this.chartCanvas()?.nativeElement;
       const points = this.chartPoints();
       const range = this.pulseRange();
@@ -310,6 +369,52 @@ export class HomeDetailsComponent implements OnDestroy {
     return 'low';
   }
 
+  taskChoices(): ChoiceOption[] {
+    this.language.current();
+    return TASK_GROUPS.flatMap(group =>
+      this.tasksIn(group).map(task => ({
+        value: task.key,
+        label: `${task.icon} ${this.activityLabel(task.key)}`,
+        group: this.activityLabel(group)
+      }))
+    );
+  }
+
+  namedChoices(prefix: string, values: string[]): ChoiceOption[] {
+    this.language.current();
+    return values.map(value => ({ value, label: this.translate.instant(`${prefix}.${value}`) }));
+  }
+
+  filterChoices(): ChoiceOption[] {
+    this.language.current();
+    return [
+      { value: 'all', label: this.translate.instant('Home.FilterAll') },
+      ...TASK_GROUPS.map(group => ({ value: group, label: this.activityLabel(group) }))
+    ];
+  }
+
+  outcomeChoices(): ChoiceOption[] {
+    this.language.current();
+    return [
+      { value: 'done', label: this.translate.instant('Outcome.Done') },
+      { value: 'missed', label: this.translate.instant('Outcome.Missed') }
+    ];
+  }
+
+  whenChoices(): ChoiceOption[] {
+    this.language.current();
+    return [
+      { value: '7', label: this.translate.instant('Home.Last7') },
+      { value: '14', label: this.translate.instant('Home.Last14') },
+      { value: '30', label: this.translate.instant('Home.Last30') },
+      { value: 'all', label: this.translate.instant('Home.AllTime') }
+    ];
+  }
+
+  weekChoices(): ChoiceOption[] {
+    return this.weeks().map(week => ({ value: week.start, label: week.label }));
+  }
+
   activityLabel(type: string): string {
     this.language.current();
     const key = `Tasks.${type}`;
@@ -317,13 +422,83 @@ export class HomeDetailsComponent implements OnDestroy {
     return label === key ? type : label;
   }
 
-  loggedLine(activity: { userName: string; type: string; completed: boolean }): string {
+  loggedLine(activity: ActivityItem): string {
     this.language.current();
     return this.translate.instant('Home.LoggedLine', {
       name: activity.userName,
-      task: this.activityLabel(activity.type),
+      task: this.activityLabel(activity.taskKey || activity.type),
       outcome: this.translate.instant(activity.completed ? 'Outcome.done' : 'Outcome.missed')
     });
+  }
+
+  taskIcon(key: string): string {
+    return householdTask(key)?.icon ?? '🏠';
+  }
+
+  taskMinutes(key: string): number {
+    return householdTask(key)?.minutes ?? 0;
+  }
+
+  tasksIn(group: string) {
+    return HOUSEHOLD_TASKS.filter(task => task.group === group);
+  }
+
+  readonly visibleActivities = computed(() => {
+    const items = this.dashboard.value()?.recentActivities ?? [];
+    const task = this.taskFilter();
+    const when = this.whenFilter();
+    const today = localDateInput();
+    return items.filter(activity => {
+      const key = activity.taskKey || activity.type;
+      const group = householdTask(key)?.group ?? activity.type;
+      if (task !== 'all' && task !== key && task !== group) return false;
+      if (when === 'all') return true;
+      const start = shiftDate(today, 1 - Number(when));
+      return activity.occurredOn.slice(0, 10) >= start;
+    });
+  });
+
+  suggestionText(suggestion: TaskSuggestion): string {
+    this.language.current();
+    if (suggestion.kind === 'empty') return this.translate.instant('Home.SuggestionEmpty');
+    if (suggestion.kind === 'behind') {
+      return this.translate.instant('Home.SuggestionBehind', {
+        yours: suggestion.yours,
+        name: suggestion.otherName ?? '',
+        theirs: suggestion.theirs
+      });
+    }
+    return this.translate.instant('Home.SuggestionEven', { yours: suggestion.yours });
+  }
+
+  turnLine(turn: HomeTurnItem): string {
+    this.language.current();
+    const task = this.activityLabel(turn.taskKey);
+    if (turn.daysUntil <= 0) return this.translate.instant('Home.TurnToday', { name: turn.userName, task });
+    if (turn.daysUntil === 1) return this.translate.instant('Home.TurnTomorrow', { name: turn.userName, task });
+    return this.translate.instant('Home.TurnInDays', { days: turn.daysUntil, name: turn.userName, task });
+  }
+
+  stars(count: number): string {
+    const safe = Math.max(1, Math.min(5, count || 1));
+    return '★'.repeat(safe) + '☆'.repeat(5 - safe);
+  }
+
+  setTab(tab: 'today' | 'tasks' | 'turns' | 'people') { this.tab.set(tab); }
+  setTaskFilter(value: string) { this.taskFilter.set(value); }
+  setWhenFilter(value: string) { this.whenFilter.set(value); }
+
+  setActivityTask(key: string) {
+    this.activityTask.set(key);
+    this.activityStars.set(householdTask(key)?.stars ?? 1);
+  }
+
+  setActivityStars(stars: number) { this.activityStars.set(stars); }
+
+  pickSuggested(key: string) {
+    this.activityTask.set(key);
+    this.activityStars.set(householdTask(key)?.stars ?? 1);
+    this.tab.set('tasks');
   }
 
   moodSummary(mood: string, energy: string): string {
@@ -359,15 +534,66 @@ export class HomeDetailsComponent implements OnDestroy {
     return date.toLocaleDateString(this.language.current(), { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
-  setMood(event: Event) { this.mood.set((event.target as HTMLSelectElement).value); }
-  setEnergy(event: Event) { this.energy.set((event.target as HTMLSelectElement).value); }
-  setAvailability(event: Event) { this.availability.set((event.target as HTMLSelectElement).value); }
-  setActivityType(event: Event) { this.activityType.set((event.target as HTMLSelectElement).value); }
-  setActivityDone(event: Event) { this.activityDone.set((event.target as HTMLSelectElement).value === 'done'); }
+  setMood(value: string) { this.mood.set(value); }
+  setEnergy(value: string) { this.energy.set(value); }
+  setAvailability(value: string) { this.availability.set(value); }
+  setTurnTask(value: string) { this.turnTask.set(value); }
+  setTurnInterval(event: Event) { this.turnInterval.set(Number((event.target as HTMLInputElement).value) || 7); }
+  setTurnAlert(event: Event) { this.turnAlert.set(Number((event.target as HTMLInputElement).value) || 0); }
+  setTurnStart(value: string) { this.turnStart.set(value); }
+
+  memberInTurn(id: string): boolean {
+    return this.turnMembers().includes(id);
+  }
+
+  toggleTurnMember(id: string) {
+    const current = this.turnMembers();
+    this.turnMembers.set(current.includes(id) ? current.filter(item => item !== id) : [...current, id]);
+  }
+
+  saveTurn() {
+    const homeId = this.homeId();
+    const userId = this.userId();
+    if (!homeId || !userId || this.turnMembers().length === 0) return;
+    this.isSavingTurn.set(true);
+    this.apiService.saveTurn(homeId, {
+      homeId,
+      userId,
+      taskKey: this.turnTask(),
+      intervalDays: this.turnInterval(),
+      alertDays: this.turnAlert(),
+      startsOn: this.turnStart(),
+      memberIds: this.turnMembers()
+    }).subscribe({
+      next: () => {
+        this.isSavingTurn.set(false);
+        this.showToast(this.translate.instant('Home.TurnSaved'));
+        this.flashNotice(this.turnNotice, this.translate.instant('Home.TurnSaved'));
+        this.dashboard.reload();
+      },
+      error: (error) => {
+        const message = error.error?.error || error.error?.message || this.translate.instant('Home.TurnFailed');
+        this.showToast(message, true);
+        this.flashNotice(this.turnNotice, message, true);
+        this.isSavingTurn.set(false);
+      }
+    });
+  }
+
+  removeTurn(turn: HomeTurnItem) {
+    const homeId = this.homeId();
+    if (!homeId) return;
+    this.apiService.removeTurn(homeId, turn.id).subscribe({
+      next: () => this.dashboard.reload(),
+      error: (error) => {
+        this.flashNotice(this.turnNotice, error.error?.error || error.error?.message || this.translate.instant('Home.TurnFailed'), true);
+      }
+    });
+  }
+  setActivityDone(value: string) { this.activityDone.set(value === 'done'); }
   setComment(event: Event) { this.activityComment.set((event.target as HTMLInputElement).value); }
-  setActivityDate(event: Event) { this.activityDate.set((event.target as HTMLInputElement).value); }
-  setMonth(event: Event) {
-    const value = (event.target as HTMLInputElement).value;
+  setActivityDate(value: string) { this.activityDate.set(value); }
+  setMonth(value: string) {
     if (!/^\d{4}-\d{2}$/.test(value) || value > this.latestMonth) return;
     this.selectedMonth.set(value);
     const weeks = weeksInMonth(value, this.language.current());
@@ -376,8 +602,8 @@ export class HomeDetailsComponent implements OnDestroy {
     }
   }
 
-  setWeek(event: Event) {
-    this.selectedWeek.set((event.target as HTMLSelectElement).value);
+  setWeek(value: string) {
+    this.selectedWeek.set(value);
   }
 
   setHomeName(event: Event) { this.homeName.set((event.target as HTMLInputElement).value); }
@@ -419,10 +645,13 @@ export class HomeDetailsComponent implements OnDestroy {
 
     this.isLoggingActivity.set(true);
     this.actionError.set('');
+    const task = householdTask(this.activityTask());
     this.apiService.logActivity({
       homeId,
       userId,
-      type: this.activityType(),
+      type: task?.group ?? 'cleaning',
+      taskKey: this.activityTask(),
+      weight: this.activityStars(),
       completed: this.activityDone(),
       comment: this.activityComment().trim() || null,
       occurredOn: this.activityDate()
@@ -445,8 +674,10 @@ export class HomeDetailsComponent implements OnDestroy {
   }
 
   beginActivityEdit(activity: ActivityItem) {
+    const key = activity.taskKey || activity.type;
     this.editingId.set(activity.id);
-    this.editType.set(activity.type);
+    this.editTask.set(householdTask(key) ? key : 'bathroom');
+    this.editStars.set(activity.weight || householdTask(key)?.stars || 1);
     this.editDone.set(activity.completed);
     this.editDate.set(activity.occurredOn.slice(0, 10));
     this.editComment.set(activity.comment ?? '');
@@ -457,9 +688,12 @@ export class HomeDetailsComponent implements OnDestroy {
     this.editingId.set(null);
   }
 
-  setEditType(event: Event) { this.editType.set((event.target as HTMLSelectElement).value); }
-  setEditDone(event: Event) { this.editDone.set((event.target as HTMLSelectElement).value === 'done'); }
-  setEditDate(event: Event) { this.editDate.set((event.target as HTMLInputElement).value); }
+  setEditTask(key: string) {
+    this.editTask.set(key);
+    this.editStars.set(householdTask(key)?.stars ?? this.editStars());
+  }
+  setEditDone(value: string) { this.editDone.set(value === 'done'); }
+  setEditDate(value: string) { this.editDate.set(value); }
   setEditComment(event: Event) { this.editComment.set((event.target as HTMLInputElement).value); }
 
   saveActivityEdit() {
@@ -470,11 +704,14 @@ export class HomeDetailsComponent implements OnDestroy {
 
     this.isSavingEdit.set(true);
     this.actionError.set('');
+    const task = householdTask(this.editTask());
     this.apiService.updateActivity(activityId, {
       activityId,
       homeId,
       userId,
-      type: this.editType(),
+      type: task?.group ?? 'cleaning',
+      taskKey: this.editTask(),
+      weight: this.editStars(),
       completed: this.editDone(),
       comment: this.editComment().trim() || null,
       occurredOn: this.editDate()
@@ -573,10 +810,9 @@ export class HomeDetailsComponent implements OnDestroy {
     });
   }
 
-  changeRole(targetUserId: string, event: Event) {
+  changeRole(targetUserId: string, role: string) {
     const homeId = this.homeId();
     const userId = this.userId();
-    const role = (event.target as HTMLSelectElement).value;
     if (!homeId || !userId) return;
 
     this.actionError.set('');

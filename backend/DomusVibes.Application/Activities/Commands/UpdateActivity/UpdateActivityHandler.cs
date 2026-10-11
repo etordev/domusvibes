@@ -1,4 +1,5 @@
 using DomusVibes.Application.HomePulse;
+using DomusVibes.Domain.Tasks;
 using DomusVibes.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -32,8 +33,11 @@ namespace DomusVibes.Application.Activities.Commands.UpdateActivity
             if (activity.UserId != request.UserId)
                 throw new InvalidOperationException("You can only change an activity you added.");
 
+            var task = HouseholdTasks.Find(request.TaskKey)!;
             var previousDay = activity.OccurredOn;
-            activity.Type = request.Type;
+            activity.Type = task.Group;
+            activity.TaskKey = task.Key;
+            activity.Weight = request.Weight;
             activity.Completed = request.Completed;
             activity.Comment = string.IsNullOrWhiteSpace(request.Comment) ? null : request.Comment.Trim();
             activity.OccurredOn = request.OccurredOn;
@@ -47,7 +51,7 @@ namespace DomusVibes.Application.Activities.Commands.UpdateActivity
                 request.UserId,
                 member.User.Name,
                 "activity",
-                $"activity-updated|{member.User.Name}|{request.Type}|{outcome}|{request.OccurredOn:yyyy-MM-dd}",
+                $"activity-updated|{member.User.Name}|{task.Key}|{outcome}|{request.OccurredOn:yyyy-MM-dd}",
                 pulse.LowMood ? "The house mood is low." : null,
                 pulse.Score);
         }
