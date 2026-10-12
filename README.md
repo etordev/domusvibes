@@ -3,6 +3,8 @@
 DomusVibes is a modern home-sharing and household management platform.  
 It allows users to create homes, invite members, and manage shared living spaces in a simple and secure way.
 
+The app is online at [domusvibes.vercel.app](https://domusvibes.vercel.app).
+
 ![Home](./docs/screenshots/home.png)
 
 ---
