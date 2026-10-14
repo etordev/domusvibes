@@ -8,7 +8,7 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { DialogModule } from '@angular/cdk/dialog';
 import { TranslateModule, TranslateLoader, TranslationObject } from '@ngx-translate/core';
 import { Observable, of } from 'rxjs';
-import { authInterceptor } from './services/auth.interceptor';
+import { authInterceptor } from './core/auth.interceptor';
 import en from '../assets/i18n/en.json';
 import es from '../assets/i18n/es.json';
 import de from '../assets/i18n/de.json';
