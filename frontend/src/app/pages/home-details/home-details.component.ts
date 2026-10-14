@@ -16,6 +16,7 @@ import { DateFieldComponent } from '../../components/date-field/date-field.compo
 import { DomyComponent } from '../../components/domy/domy.component';
 import { LanguageService } from '../../services/language.service';
 import { environment } from '../../../environments/environment';
+import { filterActivities } from '../../services/activity-filter';
 import { noticeText } from '../../services/notice-text';
 import { SessionService } from '../../services/session.service';
 
@@ -99,12 +100,6 @@ function monthTitle(monthValue: string, locale: string): string {
 function localDateInput(date = new Date()): string {
   const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
   return local.toISOString().slice(0, 10);
-}
-
-function shiftDate(iso: string, days: number): string {
-  const date = new Date(`${iso}T00:00:00`);
-  date.setDate(date.getDate() + days);
-  return localDateInput(date);
 }
 
 function text(value: unknown, fallback = ''): string {
@@ -449,14 +444,7 @@ export class HomeDetailsComponent implements OnDestroy {
     const task = this.taskFilter();
     const when = this.whenFilter();
     const today = localDateInput();
-    return items.filter(activity => {
-      const key = activity.taskKey || activity.type;
-      const group = householdTask(key)?.group ?? activity.type;
-      if (task !== 'all' && task !== key && task !== group) return false;
-      if (when === 'all') return true;
-      const start = shiftDate(today, 1 - Number(when));
-      return activity.occurredOn.slice(0, 10) >= start;
-    });
+    return filterActivities(items, task, when, today);
   });
 
   suggestionText(suggestion: TaskSuggestion): string {

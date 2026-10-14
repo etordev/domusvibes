@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { WelcomeComponent } from './welcome.component';
 
@@ -8,7 +10,8 @@ describe('Welcome', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [WelcomeComponent]
+      imports: [WelcomeComponent, TranslateModule.forRoot()],
+      providers: [provideRouter([])]
     })
     .compileComponents();
 

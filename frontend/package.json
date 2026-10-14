@@ -48,6 +48,7 @@
     "@angular/compiler-cli": "^22.2.2",
     "@types/express": "^5.0.1",
     "@types/node": "^20.17.19",
+    "@vitest/ui": "^4.1.11",
     "jsdom": "^27.1.0",
     "typescript": "~6.0.3",
     "vitest": "^4.0.8"
